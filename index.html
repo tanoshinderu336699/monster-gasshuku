@@ -231,11 +231,13 @@
   .awaken-wrap {
     position: relative;
     overflow: hidden;
-    padding: 28px 20px 16px;
+    padding: 24px 20px 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    min-height: 0;
+    height: auto;
   }
   .awaken-orb {
     position: absolute;
@@ -286,6 +288,7 @@
     z-index: 3;
     pointer-events: none;
     animation: awakenSparkle var(--dur) ease-in-out var(--delay) infinite;
+    pointer-events: none;
   }
   .awaken-pt {
     position: absolute;
@@ -302,6 +305,7 @@
     text-align: center;
     position: relative;
     overflow: hidden;
+    background: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(139,92,246,0.1) 0%, transparent 70%);
   }
   .home-hero::after {
     content: '';
@@ -587,6 +591,29 @@
   }
   .chat-date-divider::before { left: 5%; }
   .chat-date-divider::after { right: 5%; }
+  .group-member-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-bottom: 4px;
+  }
+  .group-member-item:hover { background: var(--bg-card2); }
+  .group-member-item.selected { background: rgba(29,181,138,0.12); border: 1px solid var(--emerald-dim); }
+  .group-member-check {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .group-member-item.selected .group-member-check {
+    background: var(--emerald); border-color: var(--emerald); color: #fff;
+  }
+
   .chat-empty {
     text-align: center;
     padding: 40px 20px;
@@ -1132,16 +1159,13 @@
     </div>
     <div class="home-hero">
       <div class="awaken-wrap">
-        <div class="awaken-orb" style="width:180px;height:180px;background:radial-gradient(circle,rgba(139,92,246,0.15),transparent 70%);top:0px;left:50%;transform:translateX(-50%);animation-delay:0s;"></div>
-        <div class="awaken-orb" style="width:130px;height:130px;background:radial-gradient(circle,rgba(201,168,76,0.1),transparent 70%);top:10px;left:50%;transform:translateX(-50%);animation-delay:1.2s;"></div>
-        <span class="awaken-sparkle" style="top:20px;left:22%;--dur:2.2s;--delay:1.8s;">✦</span>
-        <span class="awaken-sparkle" style="top:28px;right:20%;--dur:2.8s;--delay:2.3s;">✧</span>
-        <span class="awaken-sparkle" style="bottom:36px;left:18%;--dur:3s;--delay:2.8s;">✦</span>
-        <span class="awaken-sparkle" style="bottom:32px;right:16%;--dur:2.5s;--delay:2.1s;">✧</span>
-        <span class="awaken-sparkle" style="top:16px;left:48%;--dur:3.2s;--delay:3s;">✦</span>
-        <div class="awaken-pt" style="top:50%;left:32%;--tx:-20px;--ty:-30px;--delay:2s;"></div>
-        <div class="awaken-pt" style="top:50%;right:30%;--tx:25px;--ty:-35px;--delay:2.4s;"></div>
-        <div class="awaken-pt" style="top:50%;left:46%;--tx:-10px;--ty:-40px;--delay:2.8s;"></div>
+
+        <span class="awaken-sparkle" style="top:10px;left:22%;--dur:2.2s;--delay:1.8s;">✦</span>
+        <span class="awaken-sparkle" style="top:14px;right:20%;--dur:2.8s;--delay:2.3s;">✧</span>
+        <span class="awaken-sparkle" style="top:60px;left:12%;--dur:3s;--delay:2.8s;">✦</span>
+        <span class="awaken-sparkle" style="top:60px;right:10%;--dur:2.5s;--delay:2.1s;">✧</span>
+        <span class="awaken-sparkle" style="top:8px;left:48%;--dur:3.2s;--delay:3s;">✦</span>
+
         <div class="awaken-line1">あなたの</div>
         <div class="awaken-line2">モンスターが今目覚める</div>
         <div class="awaken-deco"></div>
@@ -1316,15 +1340,46 @@
 
     <!-- グループチャット -->
     <div id="chat-tab-group" class="chat-tab-panel">
-      <div id="group-chat-inner">
-        <div class="chat-group-header">🔥 全員参加のグループチャット</div>
-        <div class="chat-messages-wrap">
-          <div class="chat-messages" id="group-messages"></div>
-          <div class="chat-input-bar">
-            <textarea class="chat-input" id="group-input" placeholder="モンスターからのメッセージ…" rows="1"></textarea>
-            <button class="chat-send-btn" onclick="sendGroupMessage()">➤</button>
-          </div>
-        </div>
+      <div style="padding: 12px 16px;">
+        <button class="btn-small" style="width:100%; padding:12px; text-align:center; border-color:var(--emerald-dim); color:var(--emerald);" onclick="showCreateGroup()">＋ グループを作成する</button>
+      </div>
+      <div class="chat-room-list" id="group-room-list">
+        <div class="chat-empty">読み込み中…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ▶ グループ作成モーダル -->
+  <div id="create-group-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">🔥 グループを作成</span>
+        <button class="modal-close" onclick="closeCreateGroup()">✕</button>
+      </div>
+      <div class="field-row" style="margin-bottom:16px;">
+        <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:6px;">グループ名（省略可）</label>
+        <input type="text" class="form-input" id="new-group-name" placeholder="例：モンスター解放チーム">
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">参加者を選択してください</div>
+      <div id="group-member-select" style="max-height:240px;overflow-y:auto;"></div>
+      <div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn-primary" style="width:auto;padding:10px 24px;" onclick="createGroup()">作成する</button>
+        <button class="modal-close" onclick="closeCreateGroup()" style="font-size:13px;padding:8px 16px;">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ▶ GROUP ROOM -->
+  <div id="screen-group-room" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('chat'); switchChatTab('group')">← 戻る</button>
+      <span class="topbar-title" id="group-room-title">グループ</span>
+    </div>
+    <div class="chat-messages-wrap">
+      <div class="chat-messages" id="group-room-messages"></div>
+      <div class="chat-input-bar">
+        <textarea class="chat-input" id="group-room-input" placeholder="モンスターからのメッセージ…" rows="1"></textarea>
+        <button class="chat-send-btn" onclick="sendGroupRoomMessage()">➤</button>
       </div>
     </div>
   </div>
@@ -1689,10 +1744,10 @@ async function goTo(page) {
     case 'chat':
       showScreen('chat');
       await initChatPage();
-      // 未読バッジを消す
       const badge = document.getElementById('chat-unread-badge');
       if (badge) badge.style.display = 'none';
       break;
+    case 'group-room': showScreen('group-room'); break;
   }
 }
 
@@ -2319,6 +2374,7 @@ function switchChatTab(tab) {
 
 async function initChatPage() {
   await renderDmList();
+  await renderGroupList();
 }
 
 async function renderDmList() {
@@ -2370,14 +2426,133 @@ async function openDmRoom(partner) {
   });
 }
 
-function initGroupChat() {
-  if (groupListener) return;
-  dbGet('users/' + currentUserKey).then(me => {
-    groupListener = onValue(ref(db, 'group'), snap => {
-      const msgs = snap.exists() ? snap.val() : {};
-      renderMessages('group-messages', msgs, me);
-    });
+let currentGroupKey = null;
+let groupRoomListener = null;
+let selectedGroupMembers = new Set();
+
+async function renderGroupList() {
+  const list = document.getElementById('group-room-list');
+  if (!list) return;
+  list.innerHTML = '<div class="chat-empty">読み込み中…</div>';
+  const groups = await dbGet('groups') || {};
+  const myGroups = Object.values(groups).filter(g => g.members && g.members[currentUserKey]);
+  if (!myGroups.length) {
+    list.innerHTML = '<div class="chat-empty">グループがありません。<br>「グループを作成する」から<br>作ってみよう🔥</div>';
+    return;
+  }
+  list.innerHTML = '';
+  myGroups.sort((a,b) => (b.lastTs||0) - (a.lastTs||0)).forEach(g => {
+    const item = document.createElement('div');
+    item.className = 'chat-room-item';
+    const memberCount = Object.keys(g.members||{}).length;
+    item.innerHTML = `
+      <div class="chat-room-avatar" style="font-size:20px;">🔥</div>
+      <div style="flex:1;overflow:hidden;">
+        <div class="chat-room-name">${g.name}</div>
+        <div class="chat-room-monster" style="color:var(--text-muted);">${memberCount}人のグループ</div>
+        ${g.lastMsg ? `<div class="chat-room-last">${g.lastMsg}</div>` : '<div class="chat-room-last" style="color:var(--text-muted);">まだメッセージがありません</div>'}
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">${g.lastTs ? formatChatTime(g.lastTs) : ''}</div>
+    `;
+    item.onclick = () => openGroupRoom(g);
+    list.appendChild(item);
   });
+}
+
+async function showCreateGroup() {
+  const users = await dbGet('users') || {};
+  const others = Object.values(users).filter(u => u.key !== currentUserKey);
+  selectedGroupMembers = new Set();
+  const sel = document.getElementById('group-member-select');
+  sel.innerHTML = '';
+  others.forEach(u => {
+    const item = document.createElement('div');
+    item.className = 'group-member-item';
+    item.dataset.key = u.key;
+    const avatarHtml = u.image ? `<img src="${u.image}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">` : '<span style="font-size:20px;">🐉</span>';
+    item.innerHTML = `
+      <div class="group-member-check">✓</div>
+      <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--bg-card2);">${avatarHtml}</div>
+      <div>
+        <div style="font-size:14px;font-weight:500;">${u.name}</div>
+        <div style="font-size:11px;color:var(--emerald);">${(u.monster&&u.monster.mname)||'モンスター名未設定'}</div>
+      </div>
+    `;
+    item.onclick = () => {
+      if (selectedGroupMembers.has(u.key)) {
+        selectedGroupMembers.delete(u.key);
+        item.classList.remove('selected');
+      } else {
+        selectedGroupMembers.add(u.key);
+        item.classList.add('selected');
+      }
+    };
+    sel.appendChild(item);
+  });
+  document.getElementById('new-group-name').value = '';
+  document.getElementById('create-group-modal').classList.add('show');
+}
+
+function closeCreateGroup() {
+  document.getElementById('create-group-modal').classList.remove('show');
+  selectedGroupMembers = new Set();
+}
+
+async function createGroup() {
+  if (!selectedGroupMembers.size) { showToast('参加者を1人以上選んでください'); return; }
+  const users = await dbGet('users') || {};
+  const me = users[currentUserKey];
+  const memberKeys = [currentUserKey, ...Array.from(selectedGroupMembers)];
+  let groupName = document.getElementById('new-group-name').value.trim();
+  if (!groupName) {
+    const names = memberKeys.map(k => (users[k]&&users[k].name)||'?');
+    groupName = names.join('・');
+  }
+  const groupKey = 'group_' + Date.now();
+  const members = {};
+  memberKeys.forEach(k => { members[k] = true; });
+  await dbSet('groups/' + groupKey, {
+    key: groupKey,
+    name: groupName,
+    members,
+    createdAt: Date.now(),
+    lastMsg: '',
+    lastTs: 0
+  });
+  closeCreateGroup();
+  showToast('グループ「' + groupName + '」を作成したよ🔥');
+  await renderGroupList();
+}
+
+async function openGroupRoom(group) {
+  currentGroupKey = group.key;
+  document.getElementById('group-room-title').textContent = '🔥 ' + group.name;
+  showScreen('group-room');
+  if (groupRoomListener) groupRoomListener();
+  const me = await dbGet('users/' + currentUserKey) || {};
+  groupRoomListener = onValue(ref(db, 'groups/' + group.key + '/messages'), snap => {
+    const msgs = snap.exists() ? snap.val() : {};
+    renderMessages('group-room-messages', msgs, me);
+  });
+}
+
+async function sendGroupRoomMessage() {
+  const input = document.getElementById('group-room-input');
+  const text = input.value.trim();
+  if (!text || !currentGroupKey) return;
+  input.value = '';
+  const me = await dbGet('users/' + currentUserKey) || {};
+  const msgKey = 'msg_' + Date.now();
+  const now = Date.now();
+  await dbSet('groups/' + currentGroupKey + '/messages/' + msgKey, {
+    senderKey: currentUserKey,
+    senderName: me.name || '',
+    senderMonster: (me.monster && me.monster.mname) || '',
+    senderImage: me.image || '',
+    text,
+    ts: now
+  });
+  await dbUpdate('groups/' + currentGroupKey, { lastMsg: text, lastTs: now });
 }
 
 function renderMessages(containerId, msgs, me) {
@@ -2435,22 +2610,7 @@ async function sendDmMessage() {
   });
 }
 
-async function sendGroupMessage() {
-  const input = document.getElementById('group-input');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  const me = await dbGet('users/' + currentUserKey) || {};
-  const msgKey = 'msg_' + Date.now();
-  await dbSet('group/' + msgKey, {
-    senderKey: currentUserKey,
-    senderName: me.name || '',
-    senderMonster: (me.monster && me.monster.mname) || '',
-    senderImage: me.image || '',
-    text,
-    ts: Date.now()
-  });
-}
+
 
 function escapeHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
@@ -2478,7 +2638,10 @@ window.resetAllData = resetAllData;
 window.handleImageUpload = handleImageUpload;
 window.switchChatTab = switchChatTab;
 window.sendDmMessage = sendDmMessage;
-window.sendGroupMessage = sendGroupMessage;
+window.showCreateGroup = showCreateGroup;
+window.closeCreateGroup = closeCreateGroup;
+window.createGroup = createGroup;
+window.sendGroupRoomMessage = sendGroupRoomMessage;
 
 // ══════════════════════════════════════
 // INIT
