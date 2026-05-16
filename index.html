@@ -36,7 +36,6 @@
     font-family: 'Noto Sans JP', sans-serif;
     background: var(--bg-deep);
     color: var(--text-primary);
-    min-height: 100vh;
     line-height: 1.7;
     font-size: 15px;
   }
@@ -52,14 +51,15 @@
       radial-gradient(ellipse 70% 50% at 50% 50%, rgba(201,168,76,0.03) 0%, transparent 70%);
     pointer-events: none;
     z-index: 0;
+    height: auto;
   }
 
-  #app { position: relative; z-index: 1; min-height: 100vh; }
+  #app { position: relative; z-index: 1; }
 
   /* ── Screens ── */
-  .screen { display: none; min-height: 100vh; opacity: 0; transform: translateY(16px); transition: opacity 0.35s ease, transform 0.35s ease; }
+  .screen { display: none; opacity: 0; transition: opacity 0.3s ease; }
   .screen.active { display: block; }
-  .screen.visible { opacity: 1; transform: translateY(0); }
+  .screen.visible { opacity: 1; }
 
   /* ── Top Bar ── */
   .topbar {
@@ -193,11 +193,13 @@
 
   /* ── HOME ── */
   @keyframes awakenUp1 {
-    0% { opacity: 0; transform: translateY(30px); letter-spacing: 0.5em; }
+    0% { opacity: 0; transform: translateY(40px); letter-spacing: 0.6em; }
+    60% { opacity: 0.7; transform: translateY(8px); letter-spacing: 0.3em; }
     100% { opacity: 1; transform: translateY(0); letter-spacing: 0.25em; }
   }
   @keyframes awakenUp2 {
-    0% { opacity: 0; transform: translateY(40px); letter-spacing: 0.4em; }
+    0% { opacity: 0; transform: translateY(50px); letter-spacing: 0.5em; }
+    60% { opacity: 0.7; transform: translateY(10px); letter-spacing: 0.2em; }
     100% { opacity: 1; transform: translateY(0); letter-spacing: 0.12em; }
   }
   @keyframes awakenGlow1 {
@@ -229,7 +231,7 @@
   .awaken-wrap {
     position: relative;
     overflow: hidden;
-    padding: 44px 20px 36px;
+    padding: 28px 20px 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -248,8 +250,8 @@
     color: #e8c96a;
     letter-spacing: 0.25em;
     opacity: 0;
-    animation: awakenUp1 1.4s cubic-bezier(0.16,1,0.3,1) 0.3s forwards,
-               awakenGlow1 2.5s ease-in-out 1.8s infinite;
+    animation: awakenUp1 3s cubic-bezier(0.16,1,0.3,1) 0.5s forwards,
+               awakenGlow1 2.5s ease-in-out 3.6s infinite;
     position: relative;
     z-index: 2;
     margin-bottom: 10px;
@@ -260,8 +262,8 @@
     font-weight: 700;
     letter-spacing: 0.12em;
     opacity: 0;
-    animation: awakenUp2 1.6s cubic-bezier(0.16,1,0.3,1) 0.9s forwards,
-               awakenGlow2 2.5s ease-in-out 2.5s infinite;
+    animation: awakenUp2 3s cubic-bezier(0.16,1,0.3,1) 1.2s forwards,
+               awakenGlow2 2.5s ease-in-out 4.3s infinite;
     position: relative;
     z-index: 2;
     background: linear-gradient(135deg, #e8c96a 0%, #f0eadc 40%, #c9a84c 70%, #e8c96a 100%);
@@ -275,7 +277,7 @@
     margin: 16px auto 20px;
     opacity: 0;
     width: 0;
-    animation: awakenLineFade 1s ease-out 2s forwards;
+    animation: awakenLineFade 1.5s ease-out 4s forwards;
   }
   .awaken-sparkle {
     position: absolute;
@@ -296,9 +298,10 @@
   }
 
   .home-hero {
-    padding: 48px 20px 32px;
+    padding: 0;
     text-align: center;
     position: relative;
+    overflow: hidden;
   }
   .home-hero::after {
     content: '';
@@ -367,6 +370,230 @@
   .home-card.card-mission::before { background: var(--red); }
   .home-card.card-survey::before { background: var(--orange); }
   .home-card.card-admin::before { background: var(--text-secondary); }
+  .home-card.card-chat::before { background: #1db58a; }
+
+  /* ── NOTIFICATION POPUP ── */
+  @keyframes notifSlideIn {
+    0% { opacity: 0; transform: translateX(-50%) translateY(-30px); }
+    60% { opacity: 1; transform: translateX(-50%) translateY(4px); }
+    100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  @keyframes notifSlideOut {
+    0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-24px); }
+  }
+  .notif-popup {
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background: var(--bg-card);
+    border: 1px solid var(--emerald-dim);
+    border-left: 3px solid var(--emerald);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    z-index: 9998;
+    cursor: pointer;
+    max-width: 320px;
+    width: calc(100% - 40px);
+    animation: notifSlideIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+  .notif-popup.hiding {
+    animation: notifSlideOut 0.3s ease forwards;
+  }
+  .notif-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--bg-card2); border: 1px solid var(--emerald-dim);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0; overflow: hidden;
+  }
+  .notif-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .notif-body { flex: 1; overflow: hidden; }
+  .notif-sender { font-size: 12px; font-weight: 700; color: var(--emerald); margin-bottom: 2px; }
+  .notif-text { font-size: 13px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .notif-type { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── CHAT ── */
+  .chat-tabs { display: flex; gap: 4px; padding: 12px 16px 0; }
+  .chat-tab-btn {
+    flex: 1; background: none; border: 1px solid var(--border);
+    color: var(--text-muted); padding: 8px; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 13px; font-family: 'Noto Sans JP', sans-serif;
+    transition: all 0.2s;
+  }
+  .chat-tab-btn.active { background: rgba(29,181,138,0.12); color: var(--emerald); border-color: var(--emerald-dim); }
+  .chat-tab-panel { display: none; }
+  .chat-tab-panel.active { display: flex; flex-direction: column; }
+
+  .chat-room-list { padding: 12px 16px; flex: 1; overflow-y: auto; }
+  .chat-room-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .chat-room-item:hover { border-color: var(--emerald-dim); }
+  .chat-room-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0; overflow: hidden;
+  }
+  .chat-room-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .chat-room-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+  .chat-room-monster { font-size: 11px; color: var(--emerald); margin-top: 2px; }
+  .chat-room-last { font-size: 12px; color: var(--text-muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+  .chat-unread {
+    background: var(--emerald); color: #fff;
+    font-size: 11px; font-weight: 700;
+    padding: 2px 7px; border-radius: 10px;
+    margin-left: auto; flex-shrink: 0;
+  }
+
+  /* チャット本文画面 */
+  .chat-messages-wrap {
+    display: flex; flex-direction: column;
+    height: calc(100vh - 120px);
+    overflow: hidden;
+  }
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .chat-msg {
+    display: flex;
+    gap: 8px;
+    max-width: 85%;
+  }
+  .chat-msg.mine { align-self: flex-end; flex-direction: row-reverse; }
+  .chat-msg-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--bg-card2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0; overflow: hidden;
+  }
+  .chat-msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .chat-msg-body { display: flex; flex-direction: column; gap: 3px; }
+  .chat-msg-sender {
+    font-size: 11px; color: var(--text-muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .chat-msg.mine .chat-msg-sender { justify-content: flex-end; }
+  .chat-msg-monster-tag {
+    font-size: 10px; color: var(--emerald);
+    background: rgba(29,181,138,0.1);
+    border: 1px solid var(--emerald-dim);
+    padding: 1px 6px; border-radius: 8px;
+  }
+  .chat-msg-bubble {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 12px 12px 12px 4px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--text-primary);
+    line-height: 1.6;
+    word-break: break-word;
+  }
+  .chat-msg.mine .chat-msg-bubble {
+    background: rgba(29,181,138,0.15);
+    border-color: var(--emerald-dim);
+    border-radius: 12px 12px 4px 12px;
+  }
+  .chat-msg-time { font-size: 10px; color: var(--text-muted); }
+  .chat-msg.mine .chat-msg-time { text-align: right; }
+
+  .chat-input-bar {
+    display: flex;
+    gap: 8px;
+    padding: 10px 16px 16px;
+    background: var(--bg-deep);
+    border-top: 1px solid var(--border);
+  }
+  .chat-input {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-primary);
+    padding: 10px 16px;
+    font-size: 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    outline: none;
+    resize: none;
+    max-height: 80px;
+    overflow-y: auto;
+  }
+  .chat-input:focus { border-color: var(--emerald-dim); }
+  .chat-send-btn {
+    background: var(--emerald);
+    border: none;
+    border-radius: 50%;
+    width: 40px; height: 40px;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    align-self: flex-end;
+  }
+  .chat-send-btn:hover { opacity: 0.85; }
+  .chat-desc-box {
+    background: rgba(29,181,138,0.06);
+    border: 1px solid var(--emerald-dim);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin: 12px 16px 4px;
+  }
+  .chat-group-header {
+    padding: 10px 16px;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--border);
+  }
+  .chat-date-divider {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 4px 0;
+    position: relative;
+  }
+  .chat-date-divider::before, .chat-date-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%; width: 30%;
+    height: 1px;
+    background: var(--border);
+  }
+  .chat-date-divider::before { left: 5%; }
+  .chat-date-divider::after { right: 5%; }
+  .chat-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.8;
+  }
 
   .card-emoji { font-size: 32px; flex-shrink: 0; }
   .card-body { flex: 1; }
@@ -905,8 +1132,8 @@
     </div>
     <div class="home-hero">
       <div class="awaken-wrap">
-        <div class="awaken-orb" style="width:220px;height:220px;background:radial-gradient(circle,rgba(139,92,246,0.15),transparent 70%);top:-20px;left:50%;transform:translateX(-50%);animation-delay:0s;"></div>
-        <div class="awaken-orb" style="width:160px;height:160px;background:radial-gradient(circle,rgba(201,168,76,0.1),transparent 70%);top:0px;left:50%;transform:translateX(-50%);animation-delay:1.2s;"></div>
+        <div class="awaken-orb" style="width:180px;height:180px;background:radial-gradient(circle,rgba(139,92,246,0.15),transparent 70%);top:0px;left:50%;transform:translateX(-50%);animation-delay:0s;"></div>
+        <div class="awaken-orb" style="width:130px;height:130px;background:radial-gradient(circle,rgba(201,168,76,0.1),transparent 70%);top:10px;left:50%;transform:translateX(-50%);animation-delay:1.2s;"></div>
         <span class="awaken-sparkle" style="top:20px;left:22%;--dur:2.2s;--delay:1.8s;">✦</span>
         <span class="awaken-sparkle" style="top:28px;right:20%;--dur:2.8s;--delay:2.3s;">✧</span>
         <span class="awaken-sparkle" style="bottom:36px;left:18%;--dur:3s;--delay:2.8s;">✦</span>
@@ -954,6 +1181,17 @@
         </div>
         <div class="card-arrow">›</div>
       </div>
+      <div class="home-card card-chat" onclick="goTo('chat')">
+        <div class="card-emoji">💬</div>
+        <div class="card-body">
+          <div class="card-title">モンスターとの秘密のメッセージ</div>
+          <div class="card-desc">モンスター同士のDM・全員グループチャット</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="chat-unread-badge" style="display:none; background:var(--red); color:#fff; font-size:11px; font-weight:700; padding:3px 8px; border-radius:10px; white-space:nowrap;">NEW</span>
+          <div class="card-arrow">›</div>
+        </div>
+      </div>
       <div class="home-card card-survey" onclick="goTo('survey')">
         <div class="card-emoji">📝</div>
         <div class="card-body">
@@ -983,7 +1221,7 @@
     <div class="page-content" style="padding-top: 20px;">
       <!-- Image Upload -->
       <div class="img-upload-area" id="img-upload-area">
-        <input type="file" id="monster-img-input" accept="image/*,image/heic,image/heif" capture="environment" onchange="handleImageUpload(event)">
+        <input type="file" id="monster-img-input" accept="image/*,image/heic,image/heif" onchange="handleImageUpload(event)">
         <img id="monster-img-preview" class="img-preview" src="" alt="" style="display:none;">
         <div id="upload-placeholder" class="img-upload-placeholder">
           <div style="font-size:48px; margin-bottom:12px;">🐉</div>
@@ -1053,12 +1291,65 @@
   </div>
 
   <!-- ▶ SURVEY -->
+  <!-- ▶ CHAT -->
+  <div id="screen-chat" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('home')">← 戻る</button>
+      <span class="topbar-title">💬 秘密のメッセージ</span>
+    </div>
+    <div class="chat-desc-box">
+      🐉 モンスターが「あの人に届けたい」と感じた瞬間に送ってみて。<br>
+      「今夜これについて話したい」「これを聞きたい」といった<br>
+      メモ代わり・モンスターとのお約束として使ってください。
+    </div>
+    <div class="chat-tabs">
+      <button class="chat-tab-btn active" onclick="switchChatTab('dm')">💌 ダイレクト</button>
+      <button class="chat-tab-btn" onclick="switchChatTab('group')">🔥 グループ</button>
+    </div>
+
+    <!-- DM一覧 -->
+    <div id="chat-tab-dm" class="chat-tab-panel active">
+      <div class="chat-room-list" id="dm-room-list">
+        <div class="chat-empty">読み込み中…</div>
+      </div>
+    </div>
+
+    <!-- グループチャット -->
+    <div id="chat-tab-group" class="chat-tab-panel">
+      <div id="group-chat-inner">
+        <div class="chat-group-header">🔥 全員参加のグループチャット</div>
+        <div class="chat-messages-wrap">
+          <div class="chat-messages" id="group-messages"></div>
+          <div class="chat-input-bar">
+            <textarea class="chat-input" id="group-input" placeholder="モンスターからのメッセージ…" rows="1"></textarea>
+            <button class="chat-send-btn" onclick="sendGroupMessage()">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ▶ DM ROOM -->
+  <div id="screen-dm-room" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('chat')">← 戻る</button>
+      <span class="topbar-title" id="dm-room-title">DM</span>
+    </div>
+    <div class="chat-messages-wrap">
+      <div class="chat-messages" id="dm-messages"></div>
+      <div class="chat-input-bar">
+        <textarea class="chat-input" id="dm-input" placeholder="モンスターからのメッセージ…" rows="1"></textarea>
+        <button class="chat-send-btn" onclick="sendDmMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+
   <div id="screen-survey" class="screen">
     <div class="topbar">
       <button class="back-btn" onclick="goTo('home')">← 戻る</button>
       <span class="topbar-title">📝 アンケート</span>
     </div>
-    <div class="page-content" style="padding-top: 40px; text-align:center;">
+    <div class="page-content" style="padding-top: 20px; text-align:center;">
       <div style="font-size:64px; margin-bottom:20px;">📋</div>
       <h2 style="font-family:'Cinzel',serif; color:var(--gold); font-size:18px; margin-bottom:12px;">振り返りアンケート</h2>
       <p style="font-size:13px; color:var(--text-secondary); line-height:1.8; margin-bottom:32px;">
@@ -1395,6 +1686,13 @@ async function goTo(page) {
     case 'mission': showScreen('mission'); await initMissionPage(); break;
     case 'survey': showScreen('survey'); break;
     case 'admin': showScreen('admin'); await initAdminPage(); break;
+    case 'chat':
+      showScreen('chat');
+      await initChatPage();
+      // 未読バッジを消す
+      const badge = document.getElementById('chat-unread-badge');
+      if (badge) badge.style.display = 'none';
+      break;
   }
 }
 
@@ -1407,6 +1705,8 @@ async function initHome() {
     document.getElementById('admin-home-card').style.display = user.role === 'admin' ? 'flex' : 'none';
     hideLoading();
     showScreen('home');
+    // 通知リスナー開始
+    startNotificationListeners();
   } catch(e) {
     hideLoading();
     showToast('データの取得に失敗しました');
@@ -1434,7 +1734,7 @@ function triggerSave(page, data) {
         await dbUpdate('users/' + currentUserKey, { updatedAt: new Date().toISOString() });
       }
       const now = new Date();
-      const ts = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+      const ts = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
       if (statusEl) { statusEl.textContent = `保存済 ${ts}`; statusEl.style.color = 'var(--emerald)'; }
     } catch(e) {
       if (statusEl) { statusEl.textContent = '保存失敗'; statusEl.style.color = 'var(--red)'; }
@@ -1640,16 +1940,35 @@ function switchTab(id) {
 
 async function initAdminPage() {
   showLoading('参加者データを読み込み中…');
-  allUsers = await dbGet('users') || {};
+  try {
+    allUsers = await dbGet('users') || {};
+  } catch(e) {
+    allUsers = {};
+    console.error('Admin load error:', e);
+  }
   hideLoading();
+  // タブを必ず「参加者一覧」にリセットしてから描画
+  const panels = ['tab-users', 'tab-missions', 'tab-reset'];
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === 0);
+  });
+  document.querySelectorAll('.tab-panel').forEach((p, i) => {
+    p.classList.toggle('active', i === 0);
+  });
   renderAdminUsers();
   renderAdminMissions();
 }
 
 function renderAdminUsers() {
   const list = document.getElementById('admin-user-list');
+  if (!list) return;
   list.innerHTML = '';
-  Object.values(allUsers).forEach(u => {
+  const users = Object.values(allUsers);
+  if (!users.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:14px;">まだ登録者がいません</div>';
+    return;
+  }
+  users.forEach(u => {
     const row = document.createElement('div');
     row.className = 'admin-user-row';
     const updated = u.updatedAt ? new Date(u.updatedAt).toLocaleString('ja-JP') : '未更新';
@@ -1845,6 +2164,303 @@ function showToast(msg) {
 }
 
 // グローバルに公開（HTML onclickから呼べるように）
+
+// ══════════════════════════════════════
+// NOTIFICATION
+// ══════════════════════════════════════
+let notifListeners = [];
+let seenMsgKeys = new Set();
+let notifTimer = null;
+let activePopups = [];
+
+function startNotificationListeners() {
+  // 既存リスナーをクリア
+  notifListeners.forEach(unsub => unsub());
+  notifListeners = [];
+
+  // 既存メッセージのキーを「既読済み」として登録（初回は通知しない）
+  async function seedSeenKeys() {
+    const users = await dbGet('users') || {};
+    const others = Object.values(users).filter(u => u.key !== currentUserKey);
+
+    // DMの既存メッセージをシード
+    for (const u of others) {
+      const dmKey = [currentUserKey, u.key].sort().join('_');
+      const msgs = await dbGet('dm/' + dmKey) || {};
+      Object.keys(msgs).forEach(k => seenMsgKeys.add('dm_' + dmKey + '_' + k));
+    }
+    // グループの既存メッセージをシード
+    const groupMsgs = await dbGet('group') || {};
+    Object.keys(groupMsgs).forEach(k => seenMsgKeys.add('group_' + k));
+
+    // シード完了後にリスナー開始
+    startListening(others);
+  }
+
+  async function startListening(others) {
+    // グループチャット監視
+    const groupUnsub = onValue(ref(db, 'group'), snap => {
+      if (!snap.exists()) return;
+      const msgs = snap.val();
+      Object.entries(msgs).forEach(([k, msg]) => {
+        const uid = 'group_' + k;
+        if (seenMsgKeys.has(uid)) return;
+        seenMsgKeys.add(uid);
+        if (msg.senderKey === currentUserKey) return; // 自分の送信は通知しない
+        showNotifPopup(msg, 'group');
+      });
+    });
+    notifListeners.push(groupUnsub);
+
+    // DM監視（全相手分）
+    for (const u of others) {
+      const dmKey = [currentUserKey, u.key].sort().join('_');
+      const dmUnsub = onValue(ref(db, 'dm/' + dmKey), snap => {
+        if (!snap.exists()) return;
+        const msgs = snap.val();
+        Object.entries(msgs).forEach(([k, msg]) => {
+          const uid = 'dm_' + dmKey + '_' + k;
+          if (seenMsgKeys.has(uid)) return;
+          seenMsgKeys.add(uid);
+          if (msg.senderKey === currentUserKey) return;
+          showNotifPopup(msg, 'dm');
+        });
+      });
+      notifListeners.push(dmUnsub);
+    }
+  }
+
+  seedSeenKeys();
+}
+
+// 通知キュー：複数人から来た場合に順番に表示
+let notifQueue = [];
+let notifShowing = false;
+
+function showNotifPopup(msg, type) {
+  // バッジを表示
+  const badge = document.getElementById('chat-unread-badge');
+  if (badge) badge.style.display = 'inline-block';
+
+  // チャット画面にいる場合はポップアップなし
+  const activePage = document.querySelector('.screen.active');
+  if (activePage && (activePage.id === 'screen-chat' || activePage.id === 'screen-dm-room')) return;
+
+  // キューに追加して順番に表示
+  notifQueue.push({ msg, type });
+  if (!notifShowing) processNotifQueue();
+}
+
+function processNotifQueue() {
+  if (!notifQueue.length) { notifShowing = false; return; }
+  notifShowing = true;
+  const { msg, type } = notifQueue.shift();
+
+  const popup = document.createElement('div');
+  popup.className = 'notif-popup';
+
+  const avatarHtml = msg.senderImage
+    ? `<img src="${msg.senderImage}" alt="${msg.senderName}">`
+    : '🐉';
+  const typeLabel = type === 'group' ? '🔥 グループ' : '💌 ダイレクト';
+
+  popup.innerHTML = `
+    <div class="notif-avatar">${avatarHtml}</div>
+    <div class="notif-body">
+      <div class="notif-sender">${msg.senderName}さんから連絡が来ているよ</div>
+      <div class="notif-type">${typeLabel}</div>
+    </div>
+  `;
+
+  popup.onclick = () => {
+    dismissPopup(popup, true);
+    goTo('chat');
+  };
+
+  document.body.appendChild(popup);
+
+  // 3秒表示 → フェードアウト → 次の通知へ
+  setTimeout(() => {
+    dismissPopup(popup, false);
+  }, 3000);
+}
+
+function dismissPopup(popup, immediate) {
+  if (!popup.parentNode) return;
+  popup.classList.add('hiding');
+  setTimeout(() => {
+    if (popup.parentNode) popup.parentNode.removeChild(popup);
+    // 次のキューを少し間を置いて表示
+    if (!immediate) {
+      setTimeout(() => processNotifQueue(), 400);
+    } else {
+      notifShowing = false;
+      processNotifQueue();
+    }
+  }, 250);
+}
+
+// ══════════════════════════════════════
+// CHAT
+// ══════════════════════════════════════
+let currentDmPartnerKey = null;
+let dmListener = null;
+let groupListener = null;
+
+function switchChatTab(tab) {
+  document.querySelectorAll('.chat-tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['dm','group'][i] === tab);
+  });
+  document.querySelectorAll('.chat-tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'chat-tab-' + tab);
+  });
+  if (tab === 'group') initGroupChat();
+}
+
+async function initChatPage() {
+  await renderDmList();
+}
+
+async function renderDmList() {
+  const list = document.getElementById('dm-room-list');
+  if (!list) return;
+  list.innerHTML = '<div class="chat-empty">読み込み中…</div>';
+  const users = await dbGet('users') || {};
+  const me = users[currentUserKey];
+  const others = Object.values(users).filter(u => u.key !== currentUserKey);
+  if (!others.length) {
+    list.innerHTML = '<div class="chat-empty">他の参加者がいません。<br>みんなが登録したら表示されるよ。</div>';
+    return;
+  }
+  list.innerHTML = '';
+  for (const u of others) {
+    const dmKey = [currentUserKey, u.key].sort().join('_');
+    const msgs = await dbGet('dm/' + dmKey) || {};
+    const msgArr = Object.values(msgs).sort((a,b) => a.ts - b.ts);
+    const last = msgArr.length ? msgArr[msgArr.length-1] : null;
+    const avatarHtml = u.image
+      ? `<img src="${u.image}" alt="${u.name}">`
+      : '🐉';
+    const item = document.createElement('div');
+    item.className = 'chat-room-item';
+    item.innerHTML = `
+      <div class="chat-room-avatar">${avatarHtml}</div>
+      <div style="flex:1; overflow:hidden;">
+        <div class="chat-room-name">${u.name}</div>
+        <div class="chat-room-monster">${(u.monster && u.monster.mname) || 'モンスター名未設定'}</div>
+        ${last ? `<div class="chat-room-last">${last.text}</div>` : '<div class="chat-room-last" style="color:var(--text-muted)">まだメッセージがありません</div>'}
+      </div>
+      <div style="font-size:11px; color:var(--text-muted);">${last ? formatChatTime(last.ts) : ''}</div>
+    `;
+    item.onclick = () => openDmRoom(u);
+    list.appendChild(item);
+  }
+}
+
+async function openDmRoom(partner) {
+  currentDmPartnerKey = partner.key;
+  document.getElementById('dm-room-title').textContent = `💌 ${partner.name}`;
+  showScreen('dm-room');
+  if (dmListener) dmListener();
+  const dmKey = [currentUserKey, partner.key].sort().join('_');
+  const me = await dbGet('users/' + currentUserKey) || {};
+  dmListener = onValue(ref(db, 'dm/' + dmKey), snap => {
+    const msgs = snap.exists() ? snap.val() : {};
+    renderMessages('dm-messages', msgs, me);
+  });
+}
+
+function initGroupChat() {
+  if (groupListener) return;
+  dbGet('users/' + currentUserKey).then(me => {
+    groupListener = onValue(ref(db, 'group'), snap => {
+      const msgs = snap.exists() ? snap.val() : {};
+      renderMessages('group-messages', msgs, me);
+    });
+  });
+}
+
+function renderMessages(containerId, msgs, me) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const msgArr = Object.values(msgs).sort((a,b) => a.ts - b.ts);
+  if (!msgArr.length) {
+    container.innerHTML = '<div class="chat-empty">🐉<br><br>まだメッセージがありません。<br>最初のメッセージを送ってみよう。</div>';
+    return;
+  }
+  const wasAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 60;
+  let lastDate = '';
+  container.innerHTML = msgArr.map(msg => {
+    const isMine = msg.senderKey === currentUserKey;
+    const d = new Date(msg.ts);
+    const dateStr = `${d.getMonth()+1}/${d.getDate()}`;
+    const dateDivider = dateStr !== lastDate
+      ? `<div class="chat-date-divider">${dateStr}</div>`
+      : '';
+    lastDate = dateStr;
+    const avatarHtml = msg.senderImage
+      ? `<img src="${msg.senderImage}" alt="${msg.senderName}">`
+      : '🐉';
+    return `${dateDivider}
+    <div class="chat-msg ${isMine ? 'mine' : ''}">
+      <div class="chat-msg-avatar">${avatarHtml}</div>
+      <div class="chat-msg-body">
+        <div class="chat-msg-sender">
+          <span>${msg.senderName}</span>
+          ${msg.senderMonster ? `<span class="chat-msg-monster-tag">${msg.senderMonster}</span>` : ''}
+        </div>
+        <div class="chat-msg-bubble">${escapeHtml(msg.text)}</div>
+        <div class="chat-msg-time">${formatChatTime(msg.ts)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  if (wasAtBottom) container.scrollTop = container.scrollHeight;
+}
+
+async function sendDmMessage() {
+  const input = document.getElementById('dm-input');
+  const text = input.value.trim();
+  if (!text || !currentDmPartnerKey) return;
+  input.value = '';
+  const me = await dbGet('users/' + currentUserKey) || {};
+  const dmKey = [currentUserKey, currentDmPartnerKey].sort().join('_');
+  const msgKey = 'msg_' + Date.now();
+  await dbSet('dm/' + dmKey + '/' + msgKey, {
+    senderKey: currentUserKey,
+    senderName: me.name || '',
+    senderMonster: (me.monster && me.monster.mname) || '',
+    senderImage: me.image || '',
+    text,
+    ts: Date.now()
+  });
+}
+
+async function sendGroupMessage() {
+  const input = document.getElementById('group-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  const me = await dbGet('users/' + currentUserKey) || {};
+  const msgKey = 'msg_' + Date.now();
+  await dbSet('group/' + msgKey, {
+    senderKey: currentUserKey,
+    senderName: me.name || '',
+    senderMonster: (me.monster && me.monster.mname) || '',
+    senderImage: me.image || '',
+    text,
+    ts: Date.now()
+  });
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function formatChatTime(ts) {
+  const d = new Date(ts);
+  return `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
 window.selectRole = selectRole;
 window.register = register;
 window.loginByName = loginByName;
@@ -1860,6 +2476,9 @@ window.saveMission = saveMission;
 window.deleteUser = deleteUser;
 window.resetAllData = resetAllData;
 window.handleImageUpload = handleImageUpload;
+window.switchChatTab = switchChatTab;
+window.sendDmMessage = sendDmMessage;
+window.sendGroupMessage = sendGroupMessage;
 
 // ══════════════════════════════════════
 // INIT
