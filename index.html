@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>モンスター合宿</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+
+  :root {
+    --bg-deep: #0a0c14;
+    --bg-card: #111520;
+    --bg-card2: #161b2e;
+    --bg-card3: #1a2035;
+    --gold: #c9a84c;
+    --gold-light: #e8c96a;
+    --gold-dim: #7a6030;
+    --emerald: #1db58a;
+    --emerald-dim: #0d6b52;
+    --purple: #8b5cf6;
+    --purple-dim: #4c1d95;
+    --red: #e05252;
+    --orange: #e07832;
+    --text-primary: #f0eadc;
+    --text-secondary: #a09880;
+    --text-muted: #5a5448;
+    --border: rgba(201,168,76,0.2);
+    --border-em: rgba(201,168,76,0.5);
+    --shadow: 0 4px 32px rgba(0,0,0,0.6);
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  /* ── 装飾背景 ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 10%, rgba(139,92,246,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 30% at 20% 80%, rgba(29,181,138,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 50%, rgba(201,168,76,0.03) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app { position: relative; z-index: 1; min-height: 100vh; }
+
+  /* ── Screens ── */
+  .screen { display: none; min-height: 100vh; opacity: 0; transform: translateY(16px); transition: opacity 0.35s ease, transform 0.35s ease; }
+  .screen.active { display: block; }
+  .screen.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── Top Bar ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: rgba(10,12,20,0.95);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+  .topbar-title {
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+  }
+  .topbar-user {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .back-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--gold);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Noto Sans JP', sans-serif;
+    transition: all 0.2s;
+  }
+  .back-btn:hover { background: rgba(201,168,76,0.1); }
+
+  /* ── REGISTRATION ── */
+  #screen-register {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  .register-box {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-em);
+    border-radius: var(--radius);
+    padding: 48px 36px;
+    box-shadow: var(--shadow), 0 0 60px rgba(201,168,76,0.05);
+    text-align: center;
+  }
+
+  .logo-mark {
+    font-size: 56px;
+    margin-bottom: 8px;
+  }
+
+  .register-box h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 26px;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+    margin-bottom: 6px;
+  }
+
+  .register-box .subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+    margin-bottom: 36px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 0;
+  }
+
+  .form-group { margin-bottom: 20px; text-align: left; }
+  .form-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; display: block; letter-spacing: 0.05em; }
+
+  .form-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 12px 16px;
+    font-size: 15px;
+    font-family: 'Noto Sans JP', sans-serif;
+    transition: border 0.2s;
+    outline: none;
+  }
+  .form-input:focus { border-color: var(--gold); }
+
+  .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .role-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    background: rgba(255,255,255,0.02);
+  }
+  .role-card:hover { border-color: var(--gold-dim); }
+  .role-card.selected { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+  .role-card .role-icon { font-size: 24px; margin-bottom: 6px; }
+  .role-card .role-name { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+  .role-card .role-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold) 0%, #a8792e 100%);
+    border: none;
+    border-radius: 8px;
+    color: #1a0f00;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-primary:active { transform: scale(0.98); }
+
+  /* ── HOME ── */
+  .home-hero {
+    padding: 48px 20px 32px;
+    text-align: center;
+    position: relative;
+  }
+  .home-hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  }
+
+  .hero-icon { font-size: 64px; margin-bottom: 12px; }
+  .hero-title {
+    font-family: 'Cinzel', serif;
+    font-size: 28px;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .hero-sub {
+    font-size: 12px;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+    margin-bottom: 20px;
+    line-height: 1.8;
+  }
+  .hero-user {
+    display: inline-block;
+    background: rgba(201,168,76,0.08);
+    border: 1px solid var(--border-em);
+    border-radius: 24px;
+    padding: 6px 20px;
+    font-size: 13px;
+    color: var(--gold-light);
+  }
+
+  .home-cards { padding: 28px 16px 40px; display: flex; flex-direction: column; gap: 14px; }
+
+  .home-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .home-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+  .home-card:hover {
+    border-color: var(--border-em);
+    transform: translateX(4px);
+    box-shadow: var(--shadow);
+  }
+
+  .home-card.card-monster::before { background: var(--purple); }
+  .home-card.card-theme::before { background: var(--emerald); }
+  .home-card.card-all::before { background: var(--gold); }
+  .home-card.card-mission::before { background: var(--red); }
+  .home-card.card-survey::before { background: var(--orange); }
+  .home-card.card-admin::before { background: var(--text-secondary); }
+
+  .card-emoji { font-size: 32px; flex-shrink: 0; }
+  .card-body { flex: 1; }
+  .card-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+  .card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  .card-arrow { color: var(--text-muted); font-size: 20px; }
+
+  /* ── SECTION PAGES ── */
+  .page-header {
+    padding: 28px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-header h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 20px;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .page-header p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+
+  .page-content { padding: 20px 16px 60px; }
+
+  /* ── Image Upload ── */
+  .img-upload-area {
+    background: var(--bg-card);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .img-upload-area:hover { border-color: var(--gold-dim); }
+  .img-upload-area input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 2;
+  }
+  /* アップロード前のプレースホルダー */
+  .img-upload-placeholder {
+    padding: 40px 24px;
+  }
+  /* アップロード後の大きい画像表示 */
+  .img-preview {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    display: block;
+    border-radius: calc(var(--radius) - 2px);
+    background: #000;
+  }
+  .img-preview-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    pointer-events: none;
+  }
+  .img-upload-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 6px; }
+  .img-upload-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  /* ── Field Items ── */
+  .field-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .field-num {
+    display: inline-block;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    letter-spacing: 0.1em;
+  }
+  .field-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+  .field-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.8;
+    margin-bottom: 14px;
+    padding: 10px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 6px;
+    border-left: 2px solid var(--gold-dim);
+  }
+  .field-desc p { margin-bottom: 4px; }
+
+  textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 12px;
+    font-size: 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.7;
+    outline: none;
+    transition: border 0.2s;
+  }
+  textarea:focus { border-color: var(--gold-dim); }
+
+  /* ── Save Status ── */
+  .save-status {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(10,12,20,0.95);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    z-index: 200;
+    transition: all 0.3s;
+    display: none;
+  }
+  .save-status.saving { color: var(--orange); border-color: rgba(224,120,50,0.4); display: block; }
+  .save-status.saved { color: var(--emerald); border-color: rgba(29,181,138,0.4); display: block; }
+
+  /* ── Theme Page ── */
+  .theme-desc-box {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--emerald);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+
+  /* ── Monster Cards (All) ── */
+  .search-bar {
+    display: flex; gap: 10px; margin-bottom: 20px;
+  }
+  .search-input {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    outline: none;
+  }
+  .search-input:focus { border-color: var(--gold-dim); }
+
+  .monster-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .monster-card:hover { border-color: var(--border-em); box-shadow: var(--shadow); }
+  .monster-card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .monster-avatar {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    border: 2px solid var(--gold-dim);
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--bg-card2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    overflow: hidden;
+  }
+  .monster-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .monster-card-name { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+  .monster-card-mname { font-size: 13px; color: var(--gold); margin-top: 2px; }
+
+  .monster-field-row { margin-bottom: 10px; }
+  .mfr-label { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; letter-spacing: 0.05em; }
+  .mfr-val { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+  .expand-toggle {
+    text-align: center;
+    font-size: 12px;
+    color: var(--gold-dim);
+    cursor: pointer;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Mission ── */
+  .mission-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .mission-title-label { font-size: 11px; color: var(--red); letter-spacing: 0.1em; margin-bottom: 6px; }
+  .mission-title-val { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; }
+  .mission-body-val { font-size: 14px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 12px; }
+  .mission-sup-val { font-size: 13px; color: var(--text-muted); background: var(--bg-card2); padding: 10px; border-radius: 6px; }
+  .mission-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 14px; }
+
+  /* ── Admin Panel ── */
+  .admin-user-row {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .admin-user-row:hover { border-color: var(--border-em); }
+  .aur-name { font-size: 15px; font-weight: 500; }
+  .aur-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .aur-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .badge-admin { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid var(--gold-dim); }
+  .badge-user { background: rgba(29,181,138,0.12); color: var(--emerald); border: 1px solid var(--emerald-dim); }
+
+  .btn-small {
+    background: rgba(201,168,76,0.08);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--gold);
+    padding: 8px 16px;
+    font-size: 13px;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-small:hover { background: rgba(201,168,76,0.15); }
+
+  .btn-danger {
+    background: rgba(224,82,82,0.08);
+    border: 1px solid rgba(224,82,82,0.3);
+    border-radius: 6px;
+    color: var(--red);
+    padding: 8px 16px;
+    font-size: 13px;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  /* ── Admin Edit Page ── */
+  .admin-edit-section { margin-bottom: 32px; }
+  .admin-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .field-row {
+    margin-bottom: 14px;
+  }
+  .field-row label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; display: block; }
+
+  /* Survey */
+  .survey-btn {
+    display: block;
+    width: 100%;
+    background: linear-gradient(135deg, var(--orange) 0%, #c05a1a 100%);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    padding: 20px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    text-align: center;
+    text-decoration: none;
+    margin-bottom: 16px;
+    transition: all 0.2s;
+  }
+  .survey-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(10,12,20,0.97);
+    border: 1px solid var(--border-em);
+    border-radius: 24px;
+    padding: 10px 24px;
+    font-size: 13px;
+    color: var(--gold-light);
+    z-index: 300;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .toast.show { opacity: 1; }
+
+  /* Scroll */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Admin User Edit Detail */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 500;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: block; }
+  .modal-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-em);
+    border-radius: var(--radius);
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-title { font-family: 'Cinzel', serif; font-size: 18px; color: var(--gold); }
+  .modal-close { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); padding: 6px 12px; cursor: pointer; font-size: 18px; }
+
+  /* Confirm dialog */
+  .confirm-box {
+    background: var(--bg-card);
+    border: 1px solid var(--red);
+    border-radius: var(--radius);
+    max-width: 360px;
+    margin: 60px auto;
+    padding: 28px 24px;
+    text-align: center;
+  }
+  .confirm-box h3 { font-size: 16px; margin-bottom: 12px; color: var(--text-primary); }
+  .confirm-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+  .confirm-btns { display: flex; gap: 12px; justify-content: center; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--bg-card); border-radius: 8px; padding: 4px; }
+  .tab-btn {
+    flex: 1; background: none; border: none;
+    color: var(--text-muted); padding: 8px; border-radius: 6px;
+    cursor: pointer; font-size: 13px; font-family: 'Noto Sans JP', sans-serif;
+    transition: all 0.2s;
+  }
+  .tab-btn.active { background: rgba(201,168,76,0.12); color: var(--gold); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .login-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 28px 0 20px;
+  }
+  .login-divider::before,
+  .login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .login-divider span {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .login-section {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .login-section-title {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    letter-spacing: 0.05em;
+  }
+  .login-name-select {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 12px 16px;
+    font-size: 15px;
+    font-family: 'Noto Sans JP', sans-serif;
+    outline: none;
+    cursor: pointer;
+    transition: border 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a6030' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    margin-bottom: 12px;
+  }
+  .login-name-select:focus { border-color: var(--gold-dim); }
+  .login-name-select option { background: #111520; }
+  .btn-login {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border-em);
+    border-radius: 8px;
+    color: var(--gold);
+    padding: 13px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: all 0.2s;
+  }
+  .btn-login:hover { background: rgba(201,168,76,0.08); }
+  .login-empty {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 12px 0 4px;
+    line-height: 1.7;
+  }
+
+  @media (min-width: 600px) {
+    .home-cards { max-width: 500px; margin: 0 auto; }
+    .register-box { padding: 56px 48px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- ▶ REGISTER -->
+  <div id="screen-register" class="screen active">
+    <div class="register-box">
+      <div class="logo-mark">🐉</div>
+      <h1>MONSTER<br>GASSHUKU</h1>
+      <p class="subtitle">内なるモンスターを目覚めさせ<br>現実で使える力にする</p>
+
+      <div class="form-group">
+        <label class="form-label">⚔ あなたの名前</label>
+        <input type="text" class="form-input" id="reg-name" placeholder="例：山田 太郎">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">🛡 権限を選んでください</label>
+        <div class="role-grid">
+          <div class="role-card" data-role="participant" onclick="selectRole('participant')">
+            <div class="role-icon">⚔️</div>
+            <div class="role-name">参加者</div>
+            <div class="role-desc">合宿に参加する</div>
+          </div>
+          <div class="role-card" data-role="admin" onclick="selectRole('admin')">
+            <div class="role-icon">👑</div>
+            <div class="role-name">管理者</div>
+            <div class="role-desc">全体を管理する</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="register()">✦ 合宿に参加する ✦</button>
+
+      <div class="login-divider"><span>2回目以降の方はこちら</span></div>
+
+      <div class="login-section">
+        <div class="login-section-title">🔑 名前でログイン</div>
+        <select id="login-name-select" class="login-name-select">
+          <option value="">名前を選んでください</option>
+        </select>
+        <button class="btn-login" onclick="loginByName()">ログインして続きを見る →</button>
+        <div id="login-empty-msg" class="login-empty" style="display:none;">
+          まだ登録者がいません。<br>上から新規登録してください。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ▶ HOME -->
+  <div id="screen-home" class="screen">
+    <div class="topbar">
+      <span class="topbar-title">🐉 MONSTER GASSHUKU</span>
+      <button class="back-btn" onclick="logout()">退出</button>
+    </div>
+    <div class="home-hero">
+      <div class="hero-icon">🔥</div>
+      <h1 class="hero-title">MONSTER<br>GASSHUKU</h1>
+      <p class="hero-sub">内なるモンスターを目覚めさせ<br>現実で使える力にする</p>
+      <span class="hero-user" id="hero-username">ようこそ、〇〇さん</span>
+    </div>
+    <div class="home-cards">
+      <div class="home-card card-monster" onclick="goTo('monster')">
+        <div class="card-emoji">🐲</div>
+        <div class="card-body">
+          <div class="card-title">私のモンスターについて</div>
+          <div class="card-desc">名前・能力・発動条件・身体感覚など<br>自分のモンスターを深く言語化する</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
+      <div class="home-card card-theme" onclick="goTo('theme')">
+        <div class="card-emoji">🌀</div>
+        <div class="card-body">
+          <div class="card-title">私の合宿のテーマ</div>
+          <div class="card-desc">得たいこと・向かいたい方向<br>繋がりたいビジョンを書く</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
+      <div class="home-card card-all" onclick="goTo('all-monsters')">
+        <div class="card-emoji">📖</div>
+        <div class="card-body">
+          <div class="card-title">みんなのモンスター</div>
+          <div class="card-desc">参加者全員のモンスター情報を閲覧<br>お互いの力を知り合宿を深める</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
+      <div class="home-card card-mission" onclick="goTo('mission')">
+        <div class="card-emoji">⚡</div>
+        <div class="card-body">
+          <div class="card-title">ミッション</div>
+          <div class="card-desc">合宿中に与えられる<br>自分のミッションを確認する</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
+      <div class="home-card card-survey" onclick="goTo('survey')">
+        <div class="card-emoji">📝</div>
+        <div class="card-body">
+          <div class="card-title">アンケート</div>
+          <div class="card-desc">合宿後の振り返りアンケートに<br>回答する</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
+      <div class="home-card card-admin" id="admin-home-card" onclick="goTo('admin')" style="display:none;">
+        <div class="card-emoji">⚙️</div>
+        <div class="card-body">
+          <div class="card-title">管理者パネル</div>
+          <div class="card-desc">参加者管理・ミッション設定</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ▶ MY MONSTER -->
+  <div id="screen-monster" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('home')">← 戻る</button>
+      <span class="topbar-title">🐲 私のモンスター</span>
+      <span class="topbar-user" id="save-indicator-monster">　</span>
+    </div>
+    <div class="page-content" style="padding-top: 20px;">
+      <!-- Image Upload -->
+      <div class="img-upload-area" id="img-upload-area">
+        <input type="file" id="monster-img-input" accept="image/*,image/heic,image/heif" capture="environment" onchange="handleImageUpload(event)">
+        <img id="monster-img-preview" class="img-preview" src="" alt="" style="display:none;">
+        <div id="upload-placeholder" class="img-upload-placeholder">
+          <div style="font-size:48px; margin-bottom:12px;">🐉</div>
+          <div class="img-upload-label">タップして画像をアップロード</div>
+          <div class="img-upload-hint">カメラ撮影・カメラロールどちらでもOK</div>
+          <div class="img-upload-hint" style="margin-top:4px;">JPG / PNG / HEIC など全形式対応</div>
+        </div>
+        <div id="img-overlay" class="img-preview-overlay" style="display:none;">
+          📷 タップして画像を変更
+        </div>
+      </div>
+
+      <!-- 9 Fields -->
+      <div id="monster-fields"></div>
+    </div>
+  </div>
+
+  <!-- ▶ THEME -->
+  <div id="screen-theme" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('home')">← 戻る</button>
+      <span class="topbar-title">🌀 合宿のテーマ</span>
+      <span class="topbar-user" id="save-indicator-theme">　</span>
+    </div>
+    <div class="page-content" style="padding-top: 20px;">
+      <div class="theme-desc-box">
+        ここでは、今回のモンスター合宿における自分のテーマを書いていきます。<br>
+        最初に書いた内容が、途中で変わっても全然大丈夫です。<br>
+        合宿が進む中で感じることや向かいたい方向が変わったら、<br>
+        そのたびに自由に書き直してください。<br>
+        今の自分が感じていることを、そのまま書いてください。
+      </div>
+      <textarea id="theme-textarea" rows="16" placeholder="今回の合宿のテーマ、得たいこと、向かいたい方向、繋がりたいビジョン、大切にしたいこと…など自由に書いてください"></textarea>
+    </div>
+  </div>
+
+  <!-- ▶ ALL MONSTERS -->
+  <div id="screen-all-monsters" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('home')">← 戻る</button>
+      <span class="topbar-title">📖 みんなのモンスター</span>
+    </div>
+    <div class="page-content" style="padding-top: 20px;">
+      <div class="search-bar">
+        <input type="text" class="search-input" placeholder="名前で検索…" id="search-name" oninput="filterMonsters()">
+        <input type="text" class="search-input" placeholder="モンスター名で検索…" id="search-mname" oninput="filterMonsters()">
+      </div>
+      <div id="all-monsters-list"></div>
+    </div>
+  </div>
+
+  <!-- ▶ MISSION -->
+  <div id="screen-mission" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('home')">← 戻る</button>
+      <span class="topbar-title">⚡ ミッション</span>
+    </div>
+    <div class="page-content" style="padding-top: 20px;">
+      <div id="mission-display"></div>
+      <div style="margin-top: 20px;">
+        <div class="field-row">
+          <label style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:8px;">📝 ミッション完了後のメモ</label>
+          <textarea id="mission-memo" rows="6" placeholder="ミッションを達成してみて感じたこと、気づき、次のアクションなど自由に記録してください"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ▶ SURVEY -->
+  <div id="screen-survey" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('home')">← 戻る</button>
+      <span class="topbar-title">📝 アンケート</span>
+    </div>
+    <div class="page-content" style="padding-top: 40px; text-align:center;">
+      <div style="font-size:64px; margin-bottom:20px;">📋</div>
+      <h2 style="font-family:'Cinzel',serif; color:var(--gold); font-size:18px; margin-bottom:12px;">振り返りアンケート</h2>
+      <p style="font-size:13px; color:var(--text-secondary); line-height:1.8; margin-bottom:32px;">
+        合宿の体験を振り返り、<br>
+        感じたことや気づきを<br>
+        アンケートに記録してください。
+      </p>
+      <a href="https://forms.gle/N1Jfz5CKGwn6sQ277" target="_blank" class="survey-btn">
+        アンケートに回答する →
+      </a>
+      <p style="font-size:11px; color:var(--text-muted);">外部サイト（Googleフォーム）が開きます</p>
+    </div>
+  </div>
+
+  <!-- ▶ ADMIN -->
+  <div id="screen-admin" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('home')">← 戻る</button>
+      <span class="topbar-title">⚙️ 管理者パネル</span>
+    </div>
+    <div class="page-content" style="padding-top: 20px;">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-users')">参加者一覧</button>
+        <button class="tab-btn" onclick="switchTab('tab-missions')">ミッション管理</button>
+        <button class="tab-btn" onclick="switchTab('tab-reset')">データ管理</button>
+      </div>
+      <div id="tab-users" class="tab-panel active">
+        <div id="admin-user-list"></div>
+      </div>
+      <div id="tab-missions" class="tab-panel">
+        <div id="admin-mission-list"></div>
+      </div>
+      <div id="tab-reset" class="tab-panel">
+        <div class="field-item" style="margin-bottom:16px;">
+          <div style="font-size:15px; font-weight:700; margin-bottom:8px; color:var(--text-primary);">🗑 特定のユーザーを削除</div>
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px; line-height:1.7;">重複して登録されてしまったユーザーを選んで削除できます。</p>
+          <div id="delete-user-list"></div>
+        </div>
+        <div class="field-item" style="border-color: rgba(224,82,82,0.3);">
+          <div style="font-size:15px; font-weight:700; margin-bottom:8px; color:var(--red);">⚠️ 全データをリセット</div>
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px; line-height:1.7;">全参加者のデータをすべて削除します。<br>この操作は元に戻せません。</p>
+          <button class="btn-danger" style="width:100%; padding:14px;" onclick="resetAllData()">全データをリセットする</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ▶ ADMIN USER EDIT (Modal) -->
+  <div id="admin-user-edit-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-edit-title">ユーザー編集</span>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div id="modal-edit-content"></div>
+      <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
+        <button class="btn-small" onclick="saveModalEdit()">保存</button>
+        <button class="modal-close" onclick="closeModal()" style="font-size:13px; padding:8px 16px;">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Status -->
+  <div class="save-status" id="save-status">保存中…</div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, update, remove, onValue, child } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ══════════════════════════════════════
+// FIREBASE CONFIG
+// ══════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyDQhssYCqtJuB4nweohNWSXXkBcELyTpas",
+  authDomain: "monster-gasshuku.firebaseapp.com",
+  databaseURL: "https://monster-gasshuku-default-rtdb.firebaseio.com",
+  projectId: "monster-gasshuku",
+  storageBucket: "monster-gasshuku.firebasestorage.app",
+  messagingSenderId: "914572574060",
+  appId: "1:914572574060:web:caaf663555f4332b268749"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let currentUserKey = localStorage.getItem('mgCurrentUser') || null;
+let allUsers = {};
+let saveTimer = null;
+let editingUserKey = null;
+
+// ══════════════════════════════════════
+// MONSTER FIELDS CONFIG
+// ══════════════════════════════════════
+const MONSTER_FIELDS = [
+  {
+    id: 'mname', label: 'モンスターの名前',
+    desc: `自分の才能を、生き物として扱うための名前をつけるよ。\n名前がつくと、才能がただの概念じゃなくて、自分の中にいる存在として扱えるようになるんだ。\n\nかっこいい名前じゃなくて、本人が呼びたくなる名前にすることが大事。\n\n例えばこんな感じ：\n「限界突破させるモンスター」\n「無駄を排除するモンスター」\n「楽して稼がせるモンスター」\n「人のエネルギーを拡張する虹色モンスター」\n\n【書き出してみよう】\nこのモンスターに名前をつけるなら何？\nその名前を呼んだ時、体はどう反応する？\nかわいく感じる？頼もしく感じる？`
+  },
+  {
+    id: 'ability', label: 'モンスターの本質的な能力',
+    desc: `そのモンスターが、具体的に何をする存在なのかを見つけるよ。\nここが一番の中心。\n\n「人を元気にする」みたいな広い言葉だと2日目に使えない。\nもっとピンポイントで言語化していくんだ。\n\n例えばこんな感じ：\n「その人が勝手に決めた限界点を見つけて突破させる」\n「思考で重くなっている人をノリと感覚に戻す」\n「一致してない部分を一撃で見抜いて伝える」\n\n【書き出してみよう】\nこのモンスターは人にどんな変化を起こす？\nどんな状態の人を見ると、放っておけなくなる？\nこのモンスターが発揮された後、相手はどんな状態になってる？`
+  },
+  {
+    id: 'reason', label: '今まで発揮できなかった本当の理由',
+    desc: `ここが今回の最重要項目。\nモンスターが出てこないのは、才能がないからじゃない。\n力が強すぎるからこそ、無意識にブレーキをかけているんだ。\n\nこういう怖さが隠れていることが多い：\n「出したら嫌われる」\n「出したら目立ってしまう」\n「出したら責任を取らなきゃいけない」\n「出したら自分がコントロールできなくなる」\n\n【書き出してみよう】\nこのモンスターを出すと、何が起きそうで怖い？\n誰にどう思われそう？\n過去にこの力を出して、怒られた・嫌われた・浮いた感覚はある？`
+  },
+  {
+    id: 'switch', label: 'スイッチが入る条件と向かいたい相手',
+    desc: `モンスターは、いつでも誰にでも出るわけじゃない。\n必ずスイッチが入る条件と、放っておけなくなる相手がいるんだ。\n\nこういう条件がある：\n「限界を決めている人を見た時」\n「相手が本音を隠している時」\n「誰かが遠慮して小さくまとまっている時」\n\n【書き出してみよう】\nどんな人を見ると反応する？\nどんな場面や言葉でスイッチが入る？\n発揮して一番喜ばせたい相手は誰？`
+  },
+  {
+    id: 'setting', label: '安全に発揮できるセッティング',
+    desc: `発動条件は「スイッチが入るきっかけ」。\nセッティングは「その力を安全に出すための環境」。\n\nセッティングの例：\n「1対1の方が出る」「複数人の場の方が出る」\n「飲みながらの方が出る」\n「相手から頼られるより、自分から選ぶ方が出る」\n\n【書き出してみよう】\nこのモンスターが出やすい環境は？\n頼まれた時に出る？それとも自分が選んだ時に出る？`
+  },
+  {
+    id: 'delivery', label: '世界に届けるための出し方',
+    desc: `能力がわかっても、出し方がわからないと使えないよね。\nモンスターによって、得意な表現方法は全然違う。\n\n出し方の例：\n「言葉で鋭く刺す」「質問で引き出す」\n「場の空気を丸ごと変える」「笑いに変える」\n「一緒に動いて背中を押す」\n\n【書き出してみよう】\nこのモンスターは言葉で出る？身体で出る？空気感で出る？\n発揮する時、どんな話し方・姿勢・表情になる？`
+  },
+  {
+    id: 'body', label: '発動した時の身体感覚',
+    desc: `今回の合宿で、ここがかなり鍵になる。\n「この動きをしていたら出せる」「この身体状態なら発揮できる」\nまで落とすことが大事なんだ。\n\n【書き出してみよう】\nモンスターが出る時、身体のどこに力が入る？\n胸？腹？喉？背中？目？\n呼吸は深くなる？浅くなる？\n声は低くなる？高くなる？`
+  },
+  {
+    id: 'rampage', label: '暴走パターンと封印パターン',
+    desc: `モンスターは強いエネルギーだから、出し方を間違える問題もある。\n\n暴走パターンの例：\n「刺しすぎる」「広げすぎる」「救いすぎる」\n「自分が気持ちよくなりすぎる」\n\n封印パターンの例：\n「遠慮する」「笑ってごまかす」「いい人になる」\n\n【書き出してみよう】\n暴走するとどうなる？封印されるとどうなる？\nちょうどいい発揮状態はどんな感じ？`
+  },
+  {
+    id: 'action', label: 'この合宿中の実践ミッション',
+    desc: `最後に、合宿中の実践テーマを決めるよ。\nここは2日目のミッションに直結する。\n\n例えばこんな感じ：\n「誰か1人を限界突破させてみたい」\n「一致していないところを愛を持って伝えてみたい」\n\n【書き出してみよう】\nこの合宿中に、誰にこのモンスターを使ってみたい？\nどこまで出せたら成功？\n合宿が終わる時、モンスターに何と言っていたい？`
+  }
+];
+
+// ══════════════════════════════════════
+// FIREBASE DB 操作
+// ══════════════════════════════════════
+async function dbSet(path, data) {
+  await set(ref(db, path), data);
+}
+
+async function dbUpdate(path, data) {
+  await update(ref(db, path), data);
+}
+
+async function dbGet(path) {
+  const snap = await get(ref(db, path));
+  return snap.exists() ? snap.val() : null;
+}
+
+async function dbRemove(path) {
+  await remove(ref(db, path));
+}
+
+function dbListen(path, callback) {
+  onValue(ref(db, path), snap => {
+    callback(snap.exists() ? snap.val() : null);
+  });
+}
+
+// ══════════════════════════════════════
+// LOADING
+// ══════════════════════════════════════
+function showLoading(msg = '読み込み中…') {
+  let el = document.getElementById('loading-overlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'loading-overlay';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(10,12,20,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;';
+    el.innerHTML = '<div style="font-size:40px;margin-bottom:16px;">🐉</div><div style="font-size:14px;color:#c9a84c;letter-spacing:0.1em;">' + msg + '</div>';
+    document.body.appendChild(el);
+  } else {
+    el.style.display = 'flex';
+    el.querySelector('div:last-child').textContent = msg;
+  }
+}
+
+function hideLoading() {
+  const el = document.getElementById('loading-overlay');
+  if (el) el.style.display = 'none';
+}
+
+// ══════════════════════════════════════
+// REGISTRATION & LOGIN
+// ══════════════════════════════════════
+let selectedRole = null;
+
+function selectRole(role) {
+  selectedRole = role;
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector(`[data-role="${role}"]`).classList.add('selected');
+}
+
+async function register() {
+  const name = document.getElementById('reg-name').value.trim();
+  if (!name) { showToast('名前を入力してください'); return; }
+  if (!selectedRole) { showToast('権限を選んでください'); return; }
+
+  showLoading('登録中…');
+  try {
+    // 同じ名前が既に存在するか確認
+    const usersSnap = await dbGet('users');
+    if (usersSnap) {
+      const existing = Object.entries(usersSnap).find(([, u]) => u.name === name);
+      if (existing) {
+        const [key, user] = existing;
+        await dbUpdate('users/' + key, { role: selectedRole, updatedAt: new Date().toISOString() });
+        currentUserKey = key;
+        localStorage.setItem('mgCurrentUser', key);
+        hideLoading();
+        showToast(name + 'さんのデータで再ログインしました');
+        await initHome();
+        return;
+      }
+    }
+
+    // 新規登録
+    const key = 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    const userData = {
+      key, name, role: selectedRole,
+      createdAt: new Date().toISOString(),
+      monster: {},
+      theme: '',
+      mission: { title: '', body: '', supplement: '', memo: '' },
+      image: ''
+    };
+    await dbSet('users/' + key, userData);
+    currentUserKey = key;
+    localStorage.setItem('mgCurrentUser', key);
+    hideLoading();
+    await initHome();
+  } catch(e) {
+    hideLoading();
+    showToast('登録に失敗しました。通信を確認してください。');
+    console.error(e);
+  }
+}
+
+async function populateLoginSelect() {
+  const sel = document.getElementById('login-name-select');
+  const emptyMsg = document.getElementById('login-empty-msg');
+  const btn = document.querySelector('.btn-login');
+  if (!sel) return;
+
+  try {
+    const usersSnap = await dbGet('users');
+    sel.innerHTML = '<option value="">名前を選んでください</option>';
+    if (!usersSnap) {
+      sel.style.display = 'none';
+      if (btn) btn.style.display = 'none';
+      if (emptyMsg) emptyMsg.style.display = 'block';
+      return;
+    }
+    sel.style.display = 'block';
+    if (btn) btn.style.display = 'block';
+    if (emptyMsg) emptyMsg.style.display = 'none';
+    Object.values(usersSnap).forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.key;
+      const roleLabel = u.role === 'admin' ? '👑 管理者' : '⚔️ 参加者';
+      const updated = u.updatedAt
+        ? '最終更新：' + new Date(u.updatedAt).toLocaleDateString('ja-JP')
+        : '未更新';
+      opt.textContent = u.name + '　' + roleLabel + '　（' + updated + '）';
+      sel.appendChild(opt);
+    });
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+async function loginByName() {
+  const sel = document.getElementById('login-name-select');
+  const key = sel ? sel.value : '';
+  if (!key) { showToast('名前を選んでください'); return; }
+
+  showLoading('ログイン中…');
+  try {
+    const userData = await dbGet('users/' + key);
+    if (!userData) { hideLoading(); showToast('ユーザーが見つかりません'); return; }
+    currentUserKey = key;
+    localStorage.setItem('mgCurrentUser', key);
+    hideLoading();
+    showToast(userData.name + 'さん、おかえり！🔥');
+    await initHome();
+  } catch(e) {
+    hideLoading();
+    showToast('ログインに失敗しました');
+  }
+}
+
+async function logout() {
+  if (!confirm('ログアウトしますか？')) return;
+  currentUserKey = null;
+  localStorage.removeItem('mgCurrentUser');
+  allUsers = {};
+  showScreen('register');
+  await populateLoginSelect();
+}
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function showScreen(id) {
+  const current = document.querySelector('.screen.active');
+  const next = document.getElementById('screen-' + id);
+  if (!next) return;
+  if (current && current !== next) {
+    current.classList.remove('visible');
+    setTimeout(() => {
+      current.classList.remove('active');
+      next.classList.add('active');
+      window.scrollTo(0, 0);
+      requestAnimationFrame(() => requestAnimationFrame(() => next.classList.add('visible')));
+    }, 220);
+  } else {
+    next.classList.add('active');
+    window.scrollTo(0, 0);
+    requestAnimationFrame(() => requestAnimationFrame(() => next.classList.add('visible')));
+  }
+}
+
+async function goTo(page) {
+  switch(page) {
+    case 'home': showScreen('home'); break;
+    case 'monster': showScreen('monster'); await initMonsterPage(); break;
+    case 'theme': showScreen('theme'); await initThemePage(); break;
+    case 'all-monsters': showScreen('all-monsters'); await initAllMonsters(); break;
+    case 'mission': showScreen('mission'); await initMissionPage(); break;
+    case 'survey': showScreen('survey'); break;
+    case 'admin': showScreen('admin'); await initAdminPage(); break;
+  }
+}
+
+async function initHome() {
+  showLoading('データを取得中…');
+  try {
+    const user = await dbGet('users/' + currentUserKey);
+    if (!user) { hideLoading(); showScreen('register'); return; }
+    document.getElementById('hero-username').textContent = `ようこそ、${user.name}さん ✦`;
+    document.getElementById('admin-home-card').style.display = user.role === 'admin' ? 'flex' : 'none';
+    hideLoading();
+    showScreen('home');
+  } catch(e) {
+    hideLoading();
+    showToast('データの取得に失敗しました');
+  }
+}
+
+// ══════════════════════════════════════
+// AUTO SAVE
+// ══════════════════════════════════════
+function triggerSave(page, data) {
+  const statusEl = document.getElementById('save-indicator-' + page);
+  if (statusEl) { statusEl.textContent = '保存中…'; statusEl.style.color = 'var(--orange)'; }
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      if (page === 'monster') {
+        const updates = {};
+        Object.entries(data).forEach(([k, v]) => { updates['users/' + currentUserKey + '/monster/' + k] = v; });
+        updates['users/' + currentUserKey + '/updatedAt'] = new Date().toISOString();
+        await update(ref(db), updates);
+      } else if (page === 'theme') {
+        await dbUpdate('users/' + currentUserKey, { theme: data, updatedAt: new Date().toISOString() });
+      } else if (page === 'mission-memo') {
+        await dbUpdate('users/' + currentUserKey + '/mission', { memo: data });
+        await dbUpdate('users/' + currentUserKey, { updatedAt: new Date().toISOString() });
+      }
+      const now = new Date();
+      const ts = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+      if (statusEl) { statusEl.textContent = `保存済 ${ts}`; statusEl.style.color = 'var(--emerald)'; }
+    } catch(e) {
+      if (statusEl) { statusEl.textContent = '保存失敗'; statusEl.style.color = 'var(--red)'; }
+    }
+  }, 800);
+}
+
+// ══════════════════════════════════════
+// MONSTER PAGE
+// ══════════════════════════════════════
+async function initMonsterPage() {
+  showLoading('読み込み中…');
+  const user = await dbGet('users/' + currentUserKey);
+  hideLoading();
+  const container = document.getElementById('monster-fields');
+  container.innerHTML = '';
+
+  showImagePreview(user.image || '');
+
+  MONSTER_FIELDS.forEach((f, i) => {
+    const val = (user.monster && user.monster[f.id]) || '';
+    const descHtml = f.desc.split('\n').map(l => `<p>${l}</p>`).join('');
+    const el = document.createElement('div');
+    el.className = 'field-item';
+    el.innerHTML = `
+      <span class="field-num">0${i+1}</span>
+      <div class="field-title">${f.label}</div>
+      <div class="field-desc">${descHtml}</div>
+      <textarea id="mf-${f.id}" rows="5" placeholder="ここに自由に書いてください…">${val}</textarea>
+    `;
+    container.appendChild(el);
+    el.querySelector('textarea').addEventListener('input', e => {
+      triggerSave('monster', { [f.id]: e.target.value });
+    });
+  });
+}
+
+function showImagePreview(src) {
+  const preview = document.getElementById('monster-img-preview');
+  const placeholder = document.getElementById('upload-placeholder');
+  const overlay = document.getElementById('img-overlay');
+  if (src) {
+    preview.src = src;
+    preview.style.display = 'block';
+    placeholder.style.display = 'none';
+    if (overlay) overlay.style.display = 'flex';
+  } else {
+    preview.style.display = 'none';
+    placeholder.style.display = 'block';
+    if (overlay) overlay.style.display = 'none';
+  }
+}
+
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    const b64 = ev.target.result;
+    try {
+      await dbUpdate('users/' + currentUserKey, { image: b64, updatedAt: new Date().toISOString() });
+      showImagePreview(b64);
+      showToast('画像を保存しました ✦');
+    } catch(e) {
+      showToast('画像の保存に失敗しました');
+    }
+  };
+  reader.onerror = () => showToast('画像の読み込みに失敗しました');
+  reader.readAsDataURL(file);
+}
+
+// ══════════════════════════════════════
+// THEME PAGE
+// ══════════════════════════════════════
+async function initThemePage() {
+  showLoading('読み込み中…');
+  const user = await dbGet('users/' + currentUserKey);
+  hideLoading();
+  const ta = document.getElementById('theme-textarea');
+  ta.value = user.theme || '';
+  ta.oninput = e => triggerSave('theme', e.target.value);
+}
+
+// ══════════════════════════════════════
+// ALL MONSTERS PAGE
+// ══════════════════════════════════════
+async function initAllMonsters() {
+  showLoading('みんなのモンスターを読み込み中…');
+  allUsers = await dbGet('users') || {};
+  hideLoading();
+  renderAllMonsters();
+}
+
+function filterMonsters() { renderAllMonsters(); }
+
+function renderAllMonsters() {
+  const nameQ = document.getElementById('search-name').value.toLowerCase();
+  const mnameQ = document.getElementById('search-mname').value.toLowerCase();
+  const container = document.getElementById('all-monsters-list');
+  container.innerHTML = '';
+
+  const currentUser = allUsers[currentUserKey];
+  const isAdmin = currentUser && currentUser.role === 'admin';
+
+  Object.values(allUsers).filter(u => {
+    if (nameQ && !(u.name||"").toLowerCase().includes(nameQ)) return false;
+    if (mnameQ && !((u.monster&&u.monster.mname)||"").toLowerCase().includes(mnameQ)) return false;
+    return true;
+  }).forEach(u => {
+    const card = document.createElement('div');
+    card.className = 'monster-card';
+    const avatarHtml = u.image
+      ? `<div class="monster-avatar"><img src="${u.image}" alt="${u.name}"></div>`
+      : `<div class="monster-avatar" style="font-size:22px;">🐉</div>`;
+
+    let fieldsHtml = MONSTER_FIELDS.slice(0, 2).map(f => `
+      <div class="monster-field-row">
+        <div class="mfr-label">${f.label}</div>
+        <div class="mfr-val">${(u.monster&&u.monster[f.id]) || '<span style="color:var(--text-muted)">未入力</span>'}</div>
+      </div>
+    `).join('');
+
+    let extraFieldsHtml = MONSTER_FIELDS.slice(2).map(f => `
+      <div class="monster-field-row">
+        <div class="mfr-label">${f.label}</div>
+        <div class="mfr-val">${(u.monster&&u.monster[f.id]) || '<span style="color:var(--text-muted)">未入力</span>'}</div>
+      </div>
+    `).join('');
+
+    const editBtn = isAdmin ? `<button class="btn-small" style="margin-top:12px;" onclick="openAdminEdit('${u.key}')">編集</button>` : '';
+
+    card.innerHTML = `
+      <div class="monster-card-header">
+        ${avatarHtml}
+        <div>
+          <div class="monster-card-name">${u.name}</div>
+          <div class="monster-card-mname">${(u.monster&&u.monster.mname) || 'モンスター名未設定'}</div>
+        </div>
+      </div>
+      ${fieldsHtml}
+      <div id="extra-${u.key}" style="display:none;">${extraFieldsHtml}</div>
+      <div class="expand-toggle" onclick="toggleExtra('${u.key}', this)">▼ すべて表示</div>
+      ${editBtn}
+    `;
+    container.appendChild(card);
+  });
+
+  if (!container.children.length) {
+    container.innerHTML = '<div style="text-align:center; padding:40px 20px; color:var(--text-muted);">該当するモンスターがいません</div>';
+  }
+}
+
+function toggleExtra(key, el) {
+  const extra = document.getElementById('extra-' + key);
+  if (extra.style.display === 'none') {
+    extra.style.display = 'block';
+    el.textContent = '▲ 閉じる';
+  } else {
+    extra.style.display = 'none';
+    el.textContent = '▼ すべて表示';
+  }
+}
+
+// ══════════════════════════════════════
+// MISSION PAGE
+// ══════════════════════════════════════
+async function initMissionPage() {
+  showLoading('読み込み中…');
+  const user = await dbGet('users/' + currentUserKey);
+  hideLoading();
+  const m = user.mission || {};
+  const display = document.getElementById('mission-display');
+
+  if (m.title || m.body) {
+    display.innerHTML = `
+      <div class="mission-box">
+        <div class="mission-title-label">⚡ あなたへのミッション</div>
+        <div class="mission-title-val">${m.title || ''}</div>
+        <div class="mission-body-val">${(m.body || '').replace(/\n/g, '<br>')}</div>
+        ${m.supplement ? `<div class="mission-sup-val">📌 補足：${m.supplement}</div>` : ''}
+      </div>
+    `;
+  } else {
+    display.innerHTML = '<div class="mission-empty">🔮<br><br>まだミッションは設定されていません。<br>合宿中に管理者から届きます。</div>';
+  }
+
+  const memo = document.getElementById('mission-memo');
+  memo.value = m.memo || '';
+  memo.oninput = e => triggerSave('mission-memo', e.target.value);
+}
+
+// ══════════════════════════════════════
+// ADMIN PAGE
+// ══════════════════════════════════════
+function switchTab(id) {
+  const panels = ['tab-users', 'tab-missions', 'tab-reset'];
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', panels[i] === id);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === id));
+  if (id === 'tab-reset') renderDeleteUserList();
+}
+
+async function initAdminPage() {
+  showLoading('参加者データを読み込み中…');
+  allUsers = await dbGet('users') || {};
+  hideLoading();
+  renderAdminUsers();
+  renderAdminMissions();
+}
+
+function renderAdminUsers() {
+  const list = document.getElementById('admin-user-list');
+  list.innerHTML = '';
+  Object.values(allUsers).forEach(u => {
+    const row = document.createElement('div');
+    row.className = 'admin-user-row';
+    const updated = u.updatedAt ? new Date(u.updatedAt).toLocaleString('ja-JP') : '未更新';
+    const monsterFilled = Object.keys(u.monster || {}).filter(k => u.monster[k]).length;
+    const missionFilled = !!(u.mission && (u.mission.title || u.mission.body));
+    row.innerHTML = `
+      <div>
+        <div class="aur-name">${u.name}</div>
+        <div class="aur-meta">最終更新: ${updated}</div>
+        <div class="aur-meta">モンスター: ${monsterFilled}/9項目 ／ ミッション: ${missionFilled ? '設定済' : '未設定'}</div>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+        <span class="aur-badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role === 'admin' ? '管理者' : '参加者'}</span>
+        <button class="btn-small" onclick="openAdminEdit('${u.key}')">編集</button>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function renderAdminMissions() {
+  const list = document.getElementById('admin-mission-list');
+  list.innerHTML = '';
+  Object.values(allUsers).forEach(u => {
+    const m = u.mission || {};
+    const item = document.createElement('div');
+    item.className = 'field-item';
+    item.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div style="font-size:15px; font-weight:700;">${u.name}</div>
+        <span class="aur-badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role === 'admin' ? '管理者' : '参加者'}</span>
+      </div>
+      <div class="field-row">
+        <label>ミッションタイトル</label>
+        <input type="text" class="form-input" id="mt-${u.key}" value="${m.title || ''}" placeholder="タイトルを入力">
+      </div>
+      <div class="field-row">
+        <label>ミッション本文</label>
+        <textarea id="mb-${u.key}" rows="4" placeholder="ミッション内容を入力">${m.body || ''}</textarea>
+      </div>
+      <div class="field-row">
+        <label>補足説明</label>
+        <textarea id="ms-${u.key}" rows="2" placeholder="補足があれば">${m.supplement || ''}</textarea>
+      </div>
+      <button class="btn-small" onclick="saveMission('${u.key}')">保存</button>
+    `;
+    list.appendChild(item);
+  });
+}
+
+async function saveMission(userKey) {
+  const title = document.getElementById('mt-' + userKey).value;
+  const body = document.getElementById('mb-' + userKey).value;
+  const supplement = document.getElementById('ms-' + userKey).value;
+  showLoading('保存中…');
+  try {
+    await dbUpdate('users/' + userKey + '/mission', { title, body, supplement });
+    await dbUpdate('users/' + userKey, { updatedAt: new Date().toISOString() });
+    allUsers = await dbGet('users') || {};
+    hideLoading();
+    showToast(allUsers[userKey].name + 'さんのミッションを保存しました');
+    renderAdminUsers();
+  } catch(e) {
+    hideLoading();
+    showToast('保存に失敗しました');
+  }
+}
+
+function renderDeleteUserList() {
+  const list = document.getElementById('delete-user-list');
+  if (!list) return;
+  list.innerHTML = '';
+  const users = Object.values(allUsers);
+  if (!users.length) {
+    list.innerHTML = '<p style="font-size:13px; color:var(--text-muted);">登録ユーザーがいません</p>';
+    return;
+  }
+  users.forEach(u => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border);';
+    row.innerHTML = `
+      <div>
+        <span style="font-size:14px; font-weight:500;">${u.name}</span>
+        <span class="aur-badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}" style="margin-left:8px;">${u.role === 'admin' ? '管理者' : '参加者'}</span>
+      </div>
+      <button class="btn-danger" style="padding:6px 14px; font-size:12px;" onclick="deleteUser('${u.key}')">削除</button>
+    `;
+    list.appendChild(row);
+  });
+}
+
+async function deleteUser(userKey) {
+  const u = allUsers[userKey];
+  if (!u) return;
+  if (!confirm(`「${u.name}」のデータを削除しますか？この操作は元に戻せません。`)) return;
+  showLoading('削除中…');
+  try {
+    await dbRemove('users/' + userKey);
+    if (userKey === currentUserKey) {
+      currentUserKey = null;
+      localStorage.removeItem('mgCurrentUser');
+      hideLoading();
+      showScreen('register');
+      return;
+    }
+    allUsers = await dbGet('users') || {};
+    hideLoading();
+    showToast(u.name + 'のデータを削除しました');
+    renderDeleteUserList();
+    renderAdminUsers();
+    renderAdminMissions();
+  } catch(e) {
+    hideLoading();
+    showToast('削除に失敗しました');
+  }
+}
+
+async function resetAllData() {
+  if (!confirm('全参加者のデータをすべて削除します。本当によろしいですか？')) return;
+  if (!confirm('最終確認です。この操作は元に戻せません。実行しますか？')) return;
+  showLoading('リセット中…');
+  try {
+    await dbRemove('users');
+    currentUserKey = null;
+    localStorage.removeItem('mgCurrentUser');
+    hideLoading();
+    location.reload();
+  } catch(e) {
+    hideLoading();
+    showToast('リセットに失敗しました');
+  }
+}
+
+// ── Admin Edit Modal ──
+async function openAdminEdit(userKey) {
+  editingUserKey = userKey;
+  const u = allUsers[userKey] || await dbGet('users/' + userKey);
+  if (!u) return;
+  document.getElementById('modal-edit-title').textContent = u.name + ' の情報編集';
+
+  let html = `<div class="admin-edit-section"><div class="admin-section-title">🐲 モンスター情報</div>`;
+  MONSTER_FIELDS.forEach(f => {
+    html += `<div class="field-row">
+      <label>${f.label}</label>
+      <textarea id="ae-${f.id}" rows="3">${(u.monster&&u.monster[f.id]) || ''}</textarea>
+    </div>`;
+  });
+  html += `</div>`;
+  html += `<div class="admin-edit-section"><div class="admin-section-title">🌀 合宿テーマ</div>
+    <textarea id="ae-theme" rows="4">${u.theme || ''}</textarea>
+  </div>`;
+
+  document.getElementById('modal-edit-content').innerHTML = html;
+  document.getElementById('admin-user-edit-modal').classList.add('show');
+}
+
+async function saveModalEdit() {
+  showLoading('保存中…');
+  try {
+    const updates = {};
+    MONSTER_FIELDS.forEach(f => {
+      const el = document.getElementById('ae-' + f.id);
+      if (el) updates['users/' + editingUserKey + '/monster/' + f.id] = el.value;
+    });
+    const themeEl = document.getElementById('ae-theme');
+    if (themeEl) updates['users/' + editingUserKey + '/theme'] = themeEl.value;
+    updates['users/' + editingUserKey + '/updatedAt'] = new Date().toISOString();
+    await update(ref(db), updates);
+    allUsers = await dbGet('users') || {};
+    hideLoading();
+    closeModal();
+    showToast('保存しました');
+    renderAdminUsers();
+  } catch(e) {
+    hideLoading();
+    showToast('保存に失敗しました');
+  }
+}
+
+function closeModal() {
+  document.getElementById('admin-user-edit-modal').classList.remove('show');
+  editingUserKey = null;
+}
+
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// グローバルに公開（HTML onclickから呼べるように）
+window.selectRole = selectRole;
+window.register = register;
+window.loginByName = loginByName;
+window.logout = logout;
+window.goTo = goTo;
+window.filterMonsters = filterMonsters;
+window.toggleExtra = toggleExtra;
+window.switchTab = switchTab;
+window.openAdminEdit = openAdminEdit;
+window.saveModalEdit = saveModalEdit;
+window.closeModal = closeModal;
+window.saveMission = saveMission;
+window.deleteUser = deleteUser;
+window.resetAllData = resetAllData;
+window.handleImageUpload = handleImageUpload;
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+(async function init() {
+  const active = document.querySelector('.screen.active');
+  if (active) requestAnimationFrame(() => requestAnimationFrame(() => active.classList.add('visible')));
+
+  if (currentUserKey) {
+    showLoading('データを復元中…');
+    try {
+      const user = await dbGet('users/' + currentUserKey);
+      if (user) {
+        hideLoading();
+        await initHome();
+        return;
+      }
+    } catch(e) {}
+    hideLoading();
+    currentUserKey = null;
+    localStorage.removeItem('mgCurrentUser');
+  }
+  showScreen('register');
+  await populateLoginSelect();
+})();
+
+</script>
+</body>
+</html>
