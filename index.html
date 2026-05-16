@@ -192,6 +192,109 @@
   .btn-primary:active { transform: scale(0.98); }
 
   /* ── HOME ── */
+  @keyframes awakenUp1 {
+    0% { opacity: 0; transform: translateY(30px); letter-spacing: 0.5em; }
+    100% { opacity: 1; transform: translateY(0); letter-spacing: 0.25em; }
+  }
+  @keyframes awakenUp2 {
+    0% { opacity: 0; transform: translateY(40px); letter-spacing: 0.4em; }
+    100% { opacity: 1; transform: translateY(0); letter-spacing: 0.12em; }
+  }
+  @keyframes awakenGlow1 {
+    0%, 100% { text-shadow: 0 0 20px rgba(201,168,76,0.4), 0 0 40px rgba(201,168,76,0.2); }
+    50% { text-shadow: 0 0 30px rgba(201,168,76,0.9), 0 0 60px rgba(201,168,76,0.5), 0 0 90px rgba(139,92,246,0.3); }
+  }
+  @keyframes awakenGlow2 {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.3); }
+  }
+  @keyframes awakenLineFade {
+    0% { opacity: 0; width: 0; }
+    100% { opacity: 1; width: 100px; }
+  }
+  @keyframes awakenBgPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.9; }
+  }
+  @keyframes awakenSparkle {
+    0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+  }
+  @keyframes awakenParticle {
+    0% { opacity: 0; transform: translate(0,0) scale(0); }
+    30% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.3); }
+  }
+
+  .awaken-wrap {
+    position: relative;
+    overflow: hidden;
+    padding: 44px 20px 36px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .awaken-orb {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: awakenBgPulse 3s ease-in-out infinite;
+  }
+  .awaken-line1 {
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', Georgia, serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #e8c96a;
+    letter-spacing: 0.25em;
+    opacity: 0;
+    animation: awakenUp1 1.4s cubic-bezier(0.16,1,0.3,1) 0.3s forwards,
+               awakenGlow1 2.5s ease-in-out 1.8s infinite;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 10px;
+  }
+  .awaken-line2 {
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', Georgia, serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    opacity: 0;
+    animation: awakenUp2 1.6s cubic-bezier(0.16,1,0.3,1) 0.9s forwards,
+               awakenGlow2 2.5s ease-in-out 2.5s infinite;
+    position: relative;
+    z-index: 2;
+    background: linear-gradient(135deg, #e8c96a 0%, #f0eadc 40%, #c9a84c 70%, #e8c96a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .awaken-deco {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+    margin: 16px auto 20px;
+    opacity: 0;
+    width: 0;
+    animation: awakenLineFade 1s ease-out 2s forwards;
+  }
+  .awaken-sparkle {
+    position: absolute;
+    font-size: 13px;
+    color: #e8c96a;
+    z-index: 3;
+    pointer-events: none;
+    animation: awakenSparkle var(--dur) ease-in-out var(--delay) infinite;
+  }
+  .awaken-pt {
+    position: absolute;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: #c9a84c;
+    pointer-events: none;
+    z-index: 3;
+    animation: awakenParticle 2s ease-out var(--delay) infinite;
+  }
+
   .home-hero {
     padding: 48px 20px 32px;
     text-align: center;
@@ -801,10 +904,22 @@
       <button class="back-btn" onclick="logout()">退出</button>
     </div>
     <div class="home-hero">
-      <div class="hero-icon">🔥</div>
-      <h1 class="hero-title">MONSTER<br>GASSHUKU</h1>
-      <p class="hero-sub">内なるモンスターを目覚めさせ<br>現実で使える力にする</p>
-      <span class="hero-user" id="hero-username">ようこそ、〇〇さん</span>
+      <div class="awaken-wrap">
+        <div class="awaken-orb" style="width:220px;height:220px;background:radial-gradient(circle,rgba(139,92,246,0.15),transparent 70%);top:-20px;left:50%;transform:translateX(-50%);animation-delay:0s;"></div>
+        <div class="awaken-orb" style="width:160px;height:160px;background:radial-gradient(circle,rgba(201,168,76,0.1),transparent 70%);top:0px;left:50%;transform:translateX(-50%);animation-delay:1.2s;"></div>
+        <span class="awaken-sparkle" style="top:20px;left:22%;--dur:2.2s;--delay:1.8s;">✦</span>
+        <span class="awaken-sparkle" style="top:28px;right:20%;--dur:2.8s;--delay:2.3s;">✧</span>
+        <span class="awaken-sparkle" style="bottom:36px;left:18%;--dur:3s;--delay:2.8s;">✦</span>
+        <span class="awaken-sparkle" style="bottom:32px;right:16%;--dur:2.5s;--delay:2.1s;">✧</span>
+        <span class="awaken-sparkle" style="top:16px;left:48%;--dur:3.2s;--delay:3s;">✦</span>
+        <div class="awaken-pt" style="top:50%;left:32%;--tx:-20px;--ty:-30px;--delay:2s;"></div>
+        <div class="awaken-pt" style="top:50%;right:30%;--tx:25px;--ty:-35px;--delay:2.4s;"></div>
+        <div class="awaken-pt" style="top:50%;left:46%;--tx:-10px;--ty:-40px;--delay:2.8s;"></div>
+        <div class="awaken-line1">あなたの</div>
+        <div class="awaken-line2">モンスターが今目覚める</div>
+        <div class="awaken-deco"></div>
+        <span class="hero-user" id="hero-username">ようこそ、〇〇さん</span>
+      </div>
     </div>
     <div class="home-cards">
       <div class="home-card card-monster" onclick="goTo('monster')">
