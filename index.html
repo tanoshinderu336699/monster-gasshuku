@@ -1617,16 +1617,15 @@ async function logout() {
 // NAVIGATION
 // ══════════════════════════════════════
 function showScreen(id) {
-  const current = document.querySelector('.screen.active');
+  // 全スクリーンを非表示
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+  });
+
+  // 指定スクリーンだけ表示
   const next = document.getElementById('screen-' + id);
   if (!next) return;
-
-  if (current && current !== next) {
-    current.classList.remove('active');
-  }
-
   next.classList.add('active');
-  
 
   // 最上部にスクロール
   window.scrollTo(0, 0);
