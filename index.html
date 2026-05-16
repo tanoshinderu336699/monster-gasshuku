@@ -643,6 +643,16 @@
   .page-header p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
 
   .page-content { padding: 20px 16px 60px; }
+  .autosave-note {
+    font-size: 11px;
+    color: var(--emerald);
+    margin-top: 6px;
+    padding: 4px 8px;
+    background: rgba(29,181,138,0.06);
+    border-radius: 4px;
+    display: inline-block;
+    letter-spacing: 0.02em;
+  }
 
   /* ── Image Upload ── */
   .img-upload-area {
@@ -845,6 +855,34 @@
     margin-bottom: 16px;
   }
   .mission-title-label { font-size: 11px; color: var(--red); letter-spacing: 0.1em; margin-bottom: 6px; }
+  .mission-num-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(224,82,82,0.15); border: 1px solid rgba(224,82,82,0.4);
+    color: var(--red); font-size: 12px; font-weight: 700;
+    margin-right: 8px; flex-shrink: 0;
+  }
+  .mission-item-header {
+    display: flex; align-items: center; margin-bottom: 10px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  }
+  .mission-item-label { font-size: 13px; font-weight: 700; color: var(--text-primary); flex: 1; }
+  .mission-add-btn {
+    width: 100%; padding: 10px;
+    background: rgba(224,82,82,0.06);
+    border: 1px dashed rgba(224,82,82,0.3);
+    border-radius: 8px; color: var(--red);
+    font-size: 13px; font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer; transition: all 0.2s; margin-top: 8px;
+  }
+  .mission-add-btn:hover { background: rgba(224,82,82,0.12); }
+  .mission-delete-btn {
+    background: none; border: none;
+    color: var(--text-muted); font-size: 16px;
+    cursor: pointer; padding: 2px 6px; border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .mission-delete-btn:hover { color: var(--red); background: rgba(224,82,82,0.1); }
   .mission-title-val { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; }
   .mission-body-val { font-size: 14px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 12px; }
   .mission-sup-val { font-size: 13px; color: var(--text-muted); background: var(--bg-card2); padding: 10px; border-radius: 6px; }
@@ -1279,6 +1317,7 @@
         今の自分が感じていることを、そのまま書いてください。
       </div>
       <textarea id="theme-textarea" rows="16" placeholder="今回の合宿のテーマ、得たいこと、向かいたい方向、繋がりたいビジョン、大切にしたいこと…など自由に書いてください"></textarea>
+      <span class="autosave-note">✦ 入力した内容は自動保存されます。保存ボタンは不要です。</span>
     </div>
   </div>
 
@@ -1309,6 +1348,7 @@
         <div class="field-row">
           <label style="font-size:13px; color:var(--text-secondary); display:block; margin-bottom:8px;">📝 ミッション完了後のメモ</label>
           <textarea id="mission-memo" rows="6" placeholder="ミッションを達成してみて感じたこと、気づき、次のアクションなど自由に記録してください"></textarea>
+          <span class="autosave-note">✦ 入力した内容は自動保存されます。保存ボタンは不要です。</span>
         </div>
       </div>
     </div>
@@ -1541,6 +1581,10 @@ const MONSTER_FIELDS = [
   {
     id: 'action', label: 'この合宿中の実践ミッション',
     desc: `最後に、合宿中の実践テーマを決めるよ。\nここは2日目のミッションに直結する。\n\n例えばこんな感じ：\n「誰か1人を限界突破させてみたい」\n「一致していないところを愛を持って伝えてみたい」\n\n【書き出してみよう】\nこの合宿中に、誰にこのモンスターを使ってみたい？\nどこまで出せたら成功？\n合宿が終わる時、モンスターに何と言っていたい？`
+  },
+  {
+    id: 'memo', label: '📓 合宿メモ ─ 感じたこと・気づいたこと・言われたこと',
+    desc: `ここは自由に書き溜めるメモ欄だよ。\n正解も間違いもない。\nふと浮かんだこと、誰かに言われてハッとしたこと、\nビジョンとして見えてきたこと、感じたエネルギーのこと。\n\nどんな小さなことでも、書いておくと後で宝になる。\n\n例えばこんな内容：\n「〇〇さんに言われた言葉がずっと残ってる」\n「自分のモンスターがこういう場面で動いた」\n「合宿で初めて感じたこと」\n「帰ってからやってみたいこと」\n\n合宿が終わった後に読み返した時、\nここに書いたことが一番リアルな記録になるよ。\n\n✦ 入力した内容は自動保存されます。保存ボタンは不要です。`
   }
 ];
 
@@ -1633,7 +1677,7 @@ async function register() {
       createdAt: new Date().toISOString(),
       monster: {},
       theme: '',
-      mission: { title: '', body: '', supplement: '', memo: '' },
+      missions: [], missionMemo: '',
       image: ''
     };
     await dbSet('users/' + key, userData);
@@ -1815,10 +1859,11 @@ async function initMonsterPage() {
     const el = document.createElement('div');
     el.className = 'field-item';
     el.innerHTML = `
-      <span class="field-num">0${i+1}</span>
+      <span class="field-num">${String(i+1).padStart(2,'0')}</span>
       <div class="field-title">${f.label}</div>
       <div class="field-desc">${descHtml}</div>
-      <textarea id="mf-${f.id}" rows="5" placeholder="ここに自由に書いてください…">${val}</textarea>
+      <textarea id="mf-${f.id}" rows="${f.id === 'memo' ? 10 : 5}" placeholder="${f.id === 'memo' ? '合宿で感じたこと、気づいたこと、言われたこと、見えてきたビジョン…何でも自由に書いてね' : 'ここに自由に書いてください…'}">${val}</textarea>
+      ${f.id !== 'memo' ? '<span class="autosave-note">✦ 入力した内容は自動保存されます。保存ボタンは不要です。</span>' : ''}
     `;
     container.appendChild(el);
     el.querySelector('textarea').addEventListener('input', e => {
@@ -1960,24 +2005,27 @@ async function initMissionPage() {
   showLoading('読み込み中…');
   const user = await dbGet('users/' + currentUserKey);
   hideLoading();
-  const m = user.mission || {};
+  const missions = user.missions || (user.mission && (user.mission.title || user.mission.body) ? [user.mission] : []);
   const display = document.getElementById('mission-display');
 
-  if (m.title || m.body) {
-    display.innerHTML = `
-      <div class="mission-box">
-        <div class="mission-title-label">⚡ あなたへのミッション</div>
+  if (missions.length) {
+    display.innerHTML = missions.map((m, i) => `
+      <div class="mission-box" style="margin-bottom:12px;">
+        <div class="mission-item-header">
+          <span class="mission-num-badge">${i + 1}</span>
+          <span class="mission-item-label">⚡ ミッション ${i + 1}</span>
+        </div>
         <div class="mission-title-val">${m.title || ''}</div>
         <div class="mission-body-val">${(m.body || '').replace(/\n/g, '<br>')}</div>
         ${m.supplement ? `<div class="mission-sup-val">📌 補足：${m.supplement}</div>` : ''}
       </div>
-    `;
+    `).join('');
   } else {
     display.innerHTML = '<div class="mission-empty">🔮<br><br>まだミッションは設定されていません。<br>合宿中に管理者から届きます。</div>';
   }
 
   const memo = document.getElementById('mission-memo');
-  memo.value = m.memo || '';
+  memo.value = user.missionMemo || user.mission?.memo || '';
   memo.oninput = e => triggerSave('mission-memo', e.target.value);
 }
 
@@ -2028,7 +2076,7 @@ function renderAdminUsers() {
     row.className = 'admin-user-row';
     const updated = u.updatedAt ? new Date(u.updatedAt).toLocaleString('ja-JP') : '未更新';
     const monsterFilled = Object.keys(u.monster || {}).filter(k => u.monster[k]).length;
-    const missionFilled = !!(u.mission && (u.mission.title || u.mission.body));
+    const missionFilled = !!(u.missions && u.missions.length && u.missions[0].title) || !!(u.mission && (u.mission.title || u.mission.body));
     row.innerHTML = `
       <div>
         <div class="aur-name">${u.name}</div>
@@ -2048,40 +2096,103 @@ function renderAdminMissions() {
   const list = document.getElementById('admin-mission-list');
   list.innerHTML = '';
   Object.values(allUsers).forEach(u => {
-    const m = u.mission || {};
+    // 旧形式(mission)と新形式(missions)の両方に対応
+    const missions = u.missions || (u.mission && (u.mission.title || u.mission.body) ? [u.mission] : [{}]);
     const item = document.createElement('div');
     item.className = 'field-item';
+
+    const missionsHtml = missions.map((m, i) => `
+      <div id="mission-block-${u.key}-${i}" style="background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;">
+        <div class="mission-item-header">
+          <span class="mission-num-badge">${i + 1}</span>
+          <span class="mission-item-label">ミッション ${i + 1}</span>
+          ${i > 0 ? `<button class="mission-delete-btn" onclick="deleteMissionBlock('${u.key}', ${i})">✕</button>` : ''}
+        </div>
+        <div class="field-row">
+          <label>タイトル</label>
+          <input type="text" class="form-input" id="mt-${u.key}-${i}" value="${m.title || ''}" placeholder="ミッションのタイトル">
+        </div>
+        <div class="field-row">
+          <label>本文</label>
+          <textarea id="mb-${u.key}-${i}" rows="3" placeholder="ミッション内容を入力">${m.body || ''}</textarea>
+        </div>
+        <div class="field-row">
+          <label>補足</label>
+          <textarea id="ms-${u.key}-${i}" rows="2" placeholder="補足があれば">${m.supplement || ''}</textarea>
+        </div>
+      </div>
+    `).join('');
+
     item.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
         <div style="font-size:15px; font-weight:700;">${u.name}</div>
         <span class="aur-badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role === 'admin' ? '管理者' : '参加者'}</span>
       </div>
-      <div class="field-row">
-        <label>ミッションタイトル</label>
-        <input type="text" class="form-input" id="mt-${u.key}" value="${m.title || ''}" placeholder="タイトルを入力">
-      </div>
-      <div class="field-row">
-        <label>ミッション本文</label>
-        <textarea id="mb-${u.key}" rows="4" placeholder="ミッション内容を入力">${m.body || ''}</textarea>
-      </div>
-      <div class="field-row">
-        <label>補足説明</label>
-        <textarea id="ms-${u.key}" rows="2" placeholder="補足があれば">${m.supplement || ''}</textarea>
-      </div>
-      <button class="btn-small" onclick="saveMission('${u.key}')">保存</button>
+      <div id="mission-blocks-${u.key}">${missionsHtml}</div>
+      <button class="mission-add-btn" onclick="addMissionBlock('${u.key}')">＋ ミッションを追加する</button>
+      <span class="autosave-note" style="display:block;margin:10px 0;">✦「保存」ボタンを押すと保存されます</span>
+      <button class="btn-small" onclick="saveMission('${u.key}')">保存する</button>
     `;
     list.appendChild(item);
   });
 }
 
+function addMissionBlock(userKey) {
+  const u = allUsers[userKey];
+  const missions = u.missions || (u.mission && (u.mission.title || u.mission.body) ? [u.mission] : [{}]);
+  const i = missions.length;
+  const container = document.getElementById('mission-blocks-' + userKey);
+  const block = document.createElement('div');
+  block.id = `mission-block-${userKey}-${i}`;
+  block.style.cssText = 'background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;';
+  block.innerHTML = `
+    <div class="mission-item-header">
+      <span class="mission-num-badge">${i + 1}</span>
+      <span class="mission-item-label">ミッション ${i + 1}</span>
+      <button class="mission-delete-btn" onclick="deleteMissionBlock('${userKey}', ${i})">✕</button>
+    </div>
+    <div class="field-row">
+      <label>タイトル</label>
+      <input type="text" class="form-input" id="mt-${userKey}-${i}" value="" placeholder="ミッションのタイトル">
+    </div>
+    <div class="field-row">
+      <label>本文</label>
+      <textarea id="mb-${userKey}-${i}" rows="3" placeholder="ミッション内容を入力"></textarea>
+    </div>
+    <div class="field-row">
+      <label>補足</label>
+      <textarea id="ms-${userKey}-${i}" rows="2" placeholder="補足があれば"></textarea>
+    </div>
+  `;
+  container.appendChild(block);
+  // allUsers のカウントを増やしておく（DOM管理のため）
+  if (!allUsers[userKey].missions) allUsers[userKey].missions = missions;
+  allUsers[userKey].missions.push({});
+}
+
+function deleteMissionBlock(userKey, index) {
+  if (!confirm(`ミッション ${index + 1} を削除しますか？`)) return;
+  const u = allUsers[userKey];
+  if (!u.missions) u.missions = [];
+  u.missions.splice(index, 1);
+  renderAdminMissions();
+}
+
 async function saveMission(userKey) {
-  const title = document.getElementById('mt-' + userKey).value;
-  const body = document.getElementById('mb-' + userKey).value;
-  const supplement = document.getElementById('ms-' + userKey).value;
+  // 画面上のブロックを全部収集
+  const missions = [];
+  let i = 0;
+  while (document.getElementById(`mt-${userKey}-${i}`)) {
+    missions.push({
+      title: document.getElementById(`mt-${userKey}-${i}`).value,
+      body: document.getElementById(`mb-${userKey}-${i}`).value,
+      supplement: document.getElementById(`ms-${userKey}-${i}`).value,
+    });
+    i++;
+  }
   showLoading('保存中…');
   try {
-    await dbUpdate('users/' + userKey + '/mission', { title, body, supplement });
-    await dbUpdate('users/' + userKey, { updatedAt: new Date().toISOString() });
+    await dbUpdate('users/' + userKey, { missions, updatedAt: new Date().toISOString() });
     allUsers = await dbGet('users') || {};
     hideLoading();
     showToast(allUsers[userKey].name + 'さんのミッションを保存しました');
@@ -2633,6 +2744,8 @@ window.openAdminEdit = openAdminEdit;
 window.saveModalEdit = saveModalEdit;
 window.closeModal = closeModal;
 window.saveMission = saveMission;
+window.addMissionBlock = addMissionBlock;
+window.deleteMissionBlock = deleteMissionBlock;
 window.deleteUser = deleteUser;
 window.resetAllData = resetAllData;
 window.handleImageUpload = handleImageUpload;
