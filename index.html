@@ -32,6 +32,11 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
   body {
     font-family: 'Noto Sans JP', sans-serif;
     background: var(--bg-deep);
@@ -45,8 +50,14 @@
   #app { position: relative; z-index: 1; }
 
   /* ── Screens ── */
-  .screen { display: none; }
-  .screen.active { display: block; }
+  .screen {
+    display: none;
+    width: 100%;
+  }
+  .screen.active {
+    display: block;
+    width: 100%;
+  }
 
   /* ── Top Bar ── */
   .topbar {
@@ -90,7 +101,6 @@
     align-items: center;
     justify-content: center;
     padding: 40px 20px;
-    min-height: calc(100svh - 0px);
   }
 
   .register-box {
@@ -1477,22 +1487,14 @@ function dbListen(path, callback) {
 // LOADING
 // ══════════════════════════════════════
 function showLoading(msg = '読み込み中…') {
-  let el = document.getElementById('loading-overlay');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'loading-overlay';
-    el.style.cssText = 'position:fixed;inset:0;background:rgba(10,12,20,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;';
-    el.innerHTML = '<div style="font-size:40px;margin-bottom:16px;">🐉</div><div style="font-size:14px;color:#c9a84c;letter-spacing:0.1em;">' + msg + '</div>';
-    document.body.appendChild(el);
-  } else {
-    el.style.display = 'flex';
-    el.querySelector('div:last-child').textContent = msg;
-  }
+  // 全画面ブラックアウトを避けるためトーストのみ使用
+  const t = document.getElementById('toast');
+  if (t) { t.textContent = '⏳ ' + msg; t.classList.add('show'); }
 }
 
 function hideLoading() {
-  const el = document.getElementById('loading-overlay');
-  if (el) el.style.display = 'none';
+  const t = document.getElementById('toast');
+  if (t) t.classList.remove('show');
 }
 
 // ══════════════════════════════════════
@@ -1618,19 +1620,18 @@ async function logout() {
 // ══════════════════════════════════════
 function showScreen(id) {
   // 全スクリーンを非表示
-  document.querySelectorAll('.screen').forEach(s => {
-    s.classList.remove('active');
-  });
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
 
   // 指定スクリーンだけ表示
   const next = document.getElementById('screen-' + id);
   if (!next) return;
   next.classList.add('active');
 
-  // 最上部にスクロール
+  // スクロールリセット（iOS/Android両対応）
   window.scrollTo(0, 0);
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
+  next.scrollTop = 0;
 
   if (id === 'register') populateLoginSelect();
 }
