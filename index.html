@@ -469,38 +469,53 @@
 
   .chat-input-bar {
     display: flex;
+    flex-direction: row;
+    align-items: flex-end;
     gap: 8px;
     padding: 10px 16px 16px;
     background: var(--bg-deep);
     border-top: 1px solid var(--border);
+    box-sizing: border-box;
+    width: 100%;
+    /* iOS Safariでキーボード表示時にはみ出さないよう固定 */
+    min-width: 0;
   }
   .chat-input {
     flex: 1;
+    min-width: 0; /* iOSでflexアイテムが縮まらない問題の修正 */
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 20px;
     color: var(--text-primary);
-    padding: 10px 16px;
-    font-size: 14px;
+    padding: 10px 14px;
+    font-size: 16px; /* iOSでズームが起きないよう16px以上に */
     font-family: 'Noto Sans JP', sans-serif;
     outline: none;
     resize: none;
     max-height: 80px;
     overflow-y: auto;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
   }
   .chat-input:focus { border-color: var(--emerald-dim); }
   .chat-send-btn {
     background: var(--emerald);
     border: none;
     border-radius: 50%;
-    width: 40px; height: 40px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px; /* 縮まないよう固定 */
     color: #fff;
     font-size: 18px;
     cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
-    transition: all 0.2s;
+    transition: opacity 0.2s;
     align-self: flex-end;
+    box-sizing: border-box;
   }
   .chat-send-btn:hover { opacity: 0.85; }
   .chat-desc-box {
@@ -2372,22 +2387,40 @@ let notifTimer = null;
 let activePopups = [];
 
 function startNotificationListeners() {
-  // 既存リスナーをクリア
-  notifListeners.forEach(unsub => unsub());
+  // リスナーをリセット
+  notifListeners.forEach(unsub => { try { unsub(); } catch(e) {} });
   notifListeners = [];
+  const watchedGroupKeys = new Set();
 
-  async function seedSeenKeys() {
+  // グループ1つを監視する
+  function watchGroup(g) {
+    if (watchedGroupKeys.has(g.key)) return;
+    watchedGroupKeys.add(g.key);
+    const uid_prefix = 'grp_' + g.key + '_';
+    const unsub = onValue(ref(db, 'groups/' + g.key + '/messages'), snap => {
+      if (!snap.exists()) return;
+      Object.entries(snap.val()).forEach(([k, msg]) => {
+        const uid = uid_prefix + k;
+        if (seenMsgKeys.has(uid)) return;
+        seenMsgKeys.add(uid);
+        if (msg.senderKey === currentUserKey) return;
+        showNotifPopup(msg, 'group', g.name);
+      });
+    });
+    notifListeners.push(unsub);
+  }
+
+  async function init() {
+    // ── 既存データをシード（初回通知しない）──
     const users = await dbGet('users') || {};
     const others = Object.values(users).filter(u => u.key !== currentUserKey);
 
-    // DM既存メッセージをシード
     for (const u of others) {
       const dmKey = [currentUserKey, u.key].sort().join('_');
       const msgs = await dbGet('dm/' + dmKey) || {};
       Object.keys(msgs).forEach(k => seenMsgKeys.add('dm_' + dmKey + '_' + k));
     }
 
-    // 自分が参加しているグループの既存メッセージをシード
     const allGroups = await dbGet('groups') || {};
     const myGroups = Object.values(allGroups).filter(g => g.members && g.members[currentUserKey]);
     for (const g of myGroups) {
@@ -2395,14 +2428,10 @@ function startNotificationListeners() {
       Object.keys(msgs).forEach(k => seenMsgKeys.add('grp_' + g.key + '_' + k));
     }
 
-    startListening(others, myGroups);
-  }
-
-  async function startListening(others, myGroups) {
     // ── DM監視 ──
     for (const u of others) {
       const dmKey = [currentUserKey, u.key].sort().join('_');
-      const dmUnsub = onValue(ref(db, 'dm/' + dmKey), snap => {
+      const unsub = onValue(ref(db, 'dm/' + dmKey), snap => {
         if (!snap.exists()) return;
         Object.entries(snap.val()).forEach(([k, msg]) => {
           const uid = 'dm_' + dmKey + '_' + k;
@@ -2412,55 +2441,33 @@ function startNotificationListeners() {
           showNotifPopup(msg, 'dm');
         });
       });
-      notifListeners.push(dmUnsub);
+      notifListeners.push(unsub);
     }
 
-    // ── 自分が参加しているグループを監視 ──
-    for (const g of myGroups) {
-      const gUnsub = onValue(ref(db, 'groups/' + g.key + '/messages'), snap => {
-        if (!snap.exists()) return;
-        Object.entries(snap.val()).forEach(([k, msg]) => {
-          const uid = 'grp_' + g.key + '_' + k;
-          if (seenMsgKeys.has(uid)) return;
-          seenMsgKeys.add(uid);
-          if (msg.senderKey === currentUserKey) return;
-          showNotifPopup(msg, 'group', g.name);
-        });
-      });
-      notifListeners.push(gUnsub);
-    }
+    // ── 既存グループを監視 ──
+    myGroups.forEach(g => watchGroup(g));
 
-    // ── 新しいグループが作られた時も監視を更新 ──
-    const groupsUnsub = onValue(ref(db, 'groups'), async snap => {
+    // ── /groups 全体を監視して新グループに自動対応 ──
+    const groupsUnsub = onValue(ref(db, 'groups'), snap => {
       if (!snap.exists()) return;
-      const allG = snap.val();
-      const newMyGroups = Object.values(allG).filter(g =>
-        g.members && g.members[currentUserKey] &&
-        !notifListeners.some((_, i) => i > others.length && true) // 簡易チェック
-      );
-      // 新規グループのメッセージをシードしてリスナー追加
-      for (const g of newMyGroups) {
-        const uid_prefix = 'grp_' + g.key + '_';
-        if ([...seenMsgKeys].some(k => k.startsWith(uid_prefix))) continue;
-        const msgs = await dbGet('groups/' + g.key + '/messages') || {};
-        Object.keys(msgs).forEach(k => seenMsgKeys.add(uid_prefix + k));
-        const newUnsub = onValue(ref(db, 'groups/' + g.key + '/messages'), snap2 => {
-          if (!snap2.exists()) return;
-          Object.entries(snap2.val()).forEach(([k, msg]) => {
-            const uid = uid_prefix + k;
-            if (seenMsgKeys.has(uid)) return;
-            seenMsgKeys.add(uid);
-            if (msg.senderKey === currentUserKey) return;
-            showNotifPopup(msg, 'group', g.name);
-          });
-        });
-        notifListeners.push(newUnsub);
-      }
+      Object.values(snap.val()).forEach(g => {
+        if (g.members && g.members[currentUserKey]) {
+          // 既存メッセージをシード（通知しない）
+          if (!watchedGroupKeys.has(g.key)) {
+            dbGet('groups/' + g.key + '/messages').then(msgs => {
+              Object.keys(msgs || {}).forEach(k =>
+                seenMsgKeys.add('grp_' + g.key + '_' + k)
+              );
+              watchGroup(g);
+            });
+          }
+        }
+      });
     });
     notifListeners.push(groupsUnsub);
   }
 
-  seedSeenKeys();
+  init();
 }
 
 // 通知キュー：複数人から来た場合に順番に表示
