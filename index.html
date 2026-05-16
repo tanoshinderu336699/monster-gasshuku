@@ -821,6 +821,52 @@
     cursor: pointer; transition: all 0.2s; margin-top: 8px;
   }
   .mission-add-btn:hover { background: rgba(224,82,82,0.12); }
+
+  /* ミッション管理：名前一覧 */
+  .mission-user-row {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mission-user-row:hover {
+    border-color: var(--red);
+    transform: translateX(4px);
+  }
+  .mission-user-row-left { display: flex; align-items: center; gap: 12px; }
+  .mission-user-name { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+  .mission-user-status { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .mission-user-arrow { color: var(--text-muted); font-size: 20px; }
+  .mission-status-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .mission-status-dot.set { background: var(--emerald); }
+  .mission-status-dot.unset { background: var(--text-muted); }
+
+  /* ミッション詳細ヘッダー */
+  .mission-detail-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-card);
+    margin-bottom: 16px;
+    border-radius: var(--radius);
+  }
+  .mission-back-btn {
+    background: none; border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text-secondary);
+    padding: 6px 14px; cursor: pointer;
+    font-size: 13px; font-family: 'Noto Sans JP', sans-serif;
+    transition: all 0.2s; flex-shrink: 0;
+  }
+  .mission-back-btn:hover { border-color: var(--border-em); color: var(--text-primary); }
+  .mission-detail-name { font-size: 16px; font-weight: 700; color: var(--text-primary); }
   .mission-delete-btn {
     background: none; border: none;
     color: var(--text-muted); font-size: 16px;
@@ -2043,46 +2089,82 @@ function renderAdminUsers() {
 function renderAdminMissions() {
   const list = document.getElementById('admin-mission-list');
   list.innerHTML = '';
+
+  // ── 名前一覧を表示 ──
   Object.values(allUsers).forEach(u => {
-    // 旧形式(mission)と新形式(missions)の両方に対応
-    const missions = u.missions || (u.mission && (u.mission.title || u.mission.body) ? [u.mission] : [{}]);
-    const item = document.createElement('div');
-    item.className = 'field-item';
+    const missions = u.missions || (u.mission && (u.mission.title || u.mission.body) ? [u.mission] : []);
+    const hasM = missions.length > 0 && missions.some(m => m.title || m.body);
+    const count = missions.filter(m => m.title || m.body).length;
 
-    const missionsHtml = missions.map((m, i) => `
-      <div id="mission-block-${u.key}-${i}" style="background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;">
-        <div class="mission-item-header">
-          <span class="mission-num-badge">${i + 1}</span>
-          <span class="mission-item-label">ミッション ${i + 1}</span>
-          ${i > 0 ? `<button class="mission-delete-btn" onclick="deleteMissionBlock('${u.key}', ${i})">✕</button>` : ''}
-        </div>
-        <div class="field-row">
-          <label>タイトル</label>
-          <input type="text" class="form-input" id="mt-${u.key}-${i}" value="${m.title || ''}" placeholder="ミッションのタイトル">
-        </div>
-        <div class="field-row">
-          <label>本文</label>
-          <textarea id="mb-${u.key}-${i}" rows="3" placeholder="ミッション内容を入力">${m.body || ''}</textarea>
-        </div>
-        <div class="field-row">
-          <label>補足</label>
-          <textarea id="ms-${u.key}-${i}" rows="2" placeholder="補足があれば">${m.supplement || ''}</textarea>
+    const row = document.createElement('div');
+    row.className = 'mission-user-row';
+    row.onclick = () => openMissionDetail(u.key);
+    row.innerHTML = `
+      <div class="mission-user-row-left">
+        <div class="mission-status-dot ${hasM ? 'set' : 'unset'}"></div>
+        <div>
+          <div class="mission-user-name">${u.name}</div>
+          <div class="mission-user-status">
+            ${hasM ? `⚡ ${count}件のミッション設定済` : '未設定'}
+          </div>
         </div>
       </div>
-    `).join('');
-
-    item.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <div style="font-size:15px; font-weight:700;">${u.name}</div>
+      <div style="display:flex;align-items:center;gap:8px;">
         <span class="aur-badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role === 'admin' ? '管理者' : '参加者'}</span>
+        <div class="mission-user-arrow">›</div>
       </div>
-      <div id="mission-blocks-${u.key}">${missionsHtml}</div>
-      <button class="mission-add-btn" onclick="addMissionBlock('${u.key}')">＋ ミッションを追加する</button>
-      <span class="autosave-note" style="display:block;margin:10px 0;">✦「保存」ボタンを押すと保存されます</span>
-      <button class="btn-small" onclick="saveMission('${u.key}')">保存する</button>
     `;
-    list.appendChild(item);
+    list.appendChild(row);
   });
+}
+
+function openMissionDetail(userKey) {
+  const u = allUsers[userKey];
+  if (!u) return;
+  const missions = u.missions || (u.mission && (u.mission.title || u.mission.body) ? [u.mission] : [{}]);
+  if (!missions.length) missions.push({});
+
+  const list = document.getElementById('admin-mission-list');
+  list.innerHTML = `
+    <div class="mission-detail-header">
+      <button class="mission-back-btn" onclick="renderAdminMissions()">← 戻る</button>
+      <div class="mission-detail-name">⚡ ${u.name}のミッション</div>
+    </div>
+    <div id="mission-blocks-${u.key}">
+      ${missions.map((m, i) => `
+        <div id="mission-block-${u.key}-${i}" style="background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;">
+          <div class="mission-item-header">
+            <span class="mission-num-badge">${i + 1}</span>
+            <span class="mission-item-label">ミッション ${i + 1}</span>
+            ${i > 0 ? `<button class="mission-delete-btn" onclick="deleteMissionBlock('${u.key}', ${i})">✕</button>` : ''}
+          </div>
+          <div class="field-row">
+            <label>タイトル</label>
+            <input type="text" class="form-input" id="mt-${u.key}-${i}" value="${m.title || ''}" placeholder="ミッションのタイトル">
+          </div>
+          <div class="field-row">
+            <label>本文</label>
+            <textarea id="mb-${u.key}-${i}" rows="3" placeholder="ミッション内容を入力">${m.body || ''}</textarea>
+          </div>
+          <div class="field-row">
+            <label>補足</label>
+            <textarea id="ms-${u.key}-${i}" rows="2" placeholder="補足があれば">${m.supplement || ''}</textarea>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <button class="mission-add-btn" onclick="addMissionBlock('${u.key}')">＋ ミッションを追加する</button>
+    <span class="autosave-note" style="display:block;margin:10px 0;">✦「保存」ボタンを押すと保存されます</span>
+    <button class="btn-small" style="width:100%;padding:14px;text-align:center;" onclick="saveMission('${u.key}')">保存する</button>
+  `;
+
+  // allUsersにmissionsを反映
+  if (!allUsers[userKey].missions) allUsers[userKey].missions = missions;
+
+  // スクロールトップ
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
 }
 
 function addMissionBlock(userKey) {
@@ -2123,7 +2205,7 @@ function deleteMissionBlock(userKey, index) {
   const u = allUsers[userKey];
   if (!u.missions) u.missions = [];
   u.missions.splice(index, 1);
-  renderAdminMissions();
+  openMissionDetail(userKey);
 }
 
 async function saveMission(userKey) {
@@ -2143,8 +2225,10 @@ async function saveMission(userKey) {
     await dbUpdate('users/' + userKey, { missions, updatedAt: new Date().toISOString() });
     allUsers = await dbGet('users') || {};
     hideLoading();
-    showToast(allUsers[userKey].name + 'さんのミッションを保存しました');
+    showToast(allUsers[userKey].name + 'さんのミッションを保存しました ✦');
     renderAdminUsers();
+    // 保存後も詳細画面に留まる
+    openMissionDetail(userKey);
   } catch(e) {
     hideLoading();
     showToast('保存に失敗しました');
@@ -2292,47 +2376,35 @@ function startNotificationListeners() {
   notifListeners.forEach(unsub => unsub());
   notifListeners = [];
 
-  // 既存メッセージのキーを「既読済み」として登録（初回は通知しない）
   async function seedSeenKeys() {
     const users = await dbGet('users') || {};
     const others = Object.values(users).filter(u => u.key !== currentUserKey);
 
-    // DMの既存メッセージをシード
+    // DM既存メッセージをシード
     for (const u of others) {
       const dmKey = [currentUserKey, u.key].sort().join('_');
       const msgs = await dbGet('dm/' + dmKey) || {};
       Object.keys(msgs).forEach(k => seenMsgKeys.add('dm_' + dmKey + '_' + k));
     }
-    // グループの既存メッセージをシード
-    const groupMsgs = await dbGet('group') || {};
-    Object.keys(groupMsgs).forEach(k => seenMsgKeys.add('group_' + k));
 
-    // シード完了後にリスナー開始
-    startListening(others);
+    // 自分が参加しているグループの既存メッセージをシード
+    const allGroups = await dbGet('groups') || {};
+    const myGroups = Object.values(allGroups).filter(g => g.members && g.members[currentUserKey]);
+    for (const g of myGroups) {
+      const msgs = await dbGet('groups/' + g.key + '/messages') || {};
+      Object.keys(msgs).forEach(k => seenMsgKeys.add('grp_' + g.key + '_' + k));
+    }
+
+    startListening(others, myGroups);
   }
 
-  async function startListening(others) {
-    // グループチャット監視
-    const groupUnsub = onValue(ref(db, 'group'), snap => {
-      if (!snap.exists()) return;
-      const msgs = snap.val();
-      Object.entries(msgs).forEach(([k, msg]) => {
-        const uid = 'group_' + k;
-        if (seenMsgKeys.has(uid)) return;
-        seenMsgKeys.add(uid);
-        if (msg.senderKey === currentUserKey) return; // 自分の送信は通知しない
-        showNotifPopup(msg, 'group');
-      });
-    });
-    notifListeners.push(groupUnsub);
-
-    // DM監視（全相手分）
+  async function startListening(others, myGroups) {
+    // ── DM監視 ──
     for (const u of others) {
       const dmKey = [currentUserKey, u.key].sort().join('_');
       const dmUnsub = onValue(ref(db, 'dm/' + dmKey), snap => {
         if (!snap.exists()) return;
-        const msgs = snap.val();
-        Object.entries(msgs).forEach(([k, msg]) => {
+        Object.entries(snap.val()).forEach(([k, msg]) => {
           const uid = 'dm_' + dmKey + '_' + k;
           if (seenMsgKeys.has(uid)) return;
           seenMsgKeys.add(uid);
@@ -2342,6 +2414,50 @@ function startNotificationListeners() {
       });
       notifListeners.push(dmUnsub);
     }
+
+    // ── 自分が参加しているグループを監視 ──
+    for (const g of myGroups) {
+      const gUnsub = onValue(ref(db, 'groups/' + g.key + '/messages'), snap => {
+        if (!snap.exists()) return;
+        Object.entries(snap.val()).forEach(([k, msg]) => {
+          const uid = 'grp_' + g.key + '_' + k;
+          if (seenMsgKeys.has(uid)) return;
+          seenMsgKeys.add(uid);
+          if (msg.senderKey === currentUserKey) return;
+          showNotifPopup(msg, 'group', g.name);
+        });
+      });
+      notifListeners.push(gUnsub);
+    }
+
+    // ── 新しいグループが作られた時も監視を更新 ──
+    const groupsUnsub = onValue(ref(db, 'groups'), async snap => {
+      if (!snap.exists()) return;
+      const allG = snap.val();
+      const newMyGroups = Object.values(allG).filter(g =>
+        g.members && g.members[currentUserKey] &&
+        !notifListeners.some((_, i) => i > others.length && true) // 簡易チェック
+      );
+      // 新規グループのメッセージをシードしてリスナー追加
+      for (const g of newMyGroups) {
+        const uid_prefix = 'grp_' + g.key + '_';
+        if ([...seenMsgKeys].some(k => k.startsWith(uid_prefix))) continue;
+        const msgs = await dbGet('groups/' + g.key + '/messages') || {};
+        Object.keys(msgs).forEach(k => seenMsgKeys.add(uid_prefix + k));
+        const newUnsub = onValue(ref(db, 'groups/' + g.key + '/messages'), snap2 => {
+          if (!snap2.exists()) return;
+          Object.entries(snap2.val()).forEach(([k, msg]) => {
+            const uid = uid_prefix + k;
+            if (seenMsgKeys.has(uid)) return;
+            seenMsgKeys.add(uid);
+            if (msg.senderKey === currentUserKey) return;
+            showNotifPopup(msg, 'group', g.name);
+          });
+        });
+        notifListeners.push(newUnsub);
+      }
+    });
+    notifListeners.push(groupsUnsub);
   }
 
   seedSeenKeys();
@@ -2351,24 +2467,24 @@ function startNotificationListeners() {
 let notifQueue = [];
 let notifShowing = false;
 
-function showNotifPopup(msg, type) {
+function showNotifPopup(msg, type, groupName) {
   // バッジを表示
   const badge = document.getElementById('chat-unread-badge');
   if (badge) badge.style.display = 'inline-block';
 
   // チャット画面にいる場合はポップアップなし
   const activePage = document.querySelector('.screen.active');
-  if (activePage && (activePage.id === 'screen-chat' || activePage.id === 'screen-dm-room')) return;
+  if (activePage && (activePage.id === 'screen-chat' || activePage.id === 'screen-dm-room' || activePage.id === 'screen-group-room')) return;
 
   // キューに追加して順番に表示
-  notifQueue.push({ msg, type });
+  notifQueue.push({ msg, type, groupName });
   if (!notifShowing) processNotifQueue();
 }
 
 function processNotifQueue() {
   if (!notifQueue.length) { notifShowing = false; return; }
   notifShowing = true;
-  const { msg, type } = notifQueue.shift();
+  const { msg, type, groupName } = notifQueue.shift();
 
   const popup = document.createElement('div');
   popup.className = 'notif-popup';
@@ -2376,7 +2492,9 @@ function processNotifQueue() {
   const avatarHtml = msg.senderImage
     ? `<img src="${msg.senderImage}" alt="${msg.senderName}">`
     : '🐉';
-  const typeLabel = type === 'group' ? '🔥 グループ' : '💌 ダイレクト';
+  const typeLabel = type === 'group'
+    ? `🔥 ${groupName || 'グループ'}`
+    : '💌 ダイレクト';
 
   popup.innerHTML = `
     <div class="notif-avatar">${avatarHtml}</div>
@@ -2693,6 +2811,7 @@ window.saveModalEdit = saveModalEdit;
 window.closeModal = closeModal;
 window.saveMission = saveMission;
 window.addMissionBlock = addMissionBlock;
+window.openMissionDetail = openMissionDetail;
 window.deleteMissionBlock = deleteMissionBlock;
 window.deleteUser = deleteUser;
 window.resetAllData = resetAllData;
