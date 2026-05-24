@@ -321,6 +321,98 @@
   .home-card.card-admin::before { background: var(--text-secondary); }
   .home-card.card-chat::before { background: #1db58a; }
 
+  /* ── SCHEDULE ── */
+  .home-card.card-schedule::before { background: #8b5cf6; }
+
+  .schedule-day-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: rgba(139,92,246,0.1);
+    border: 1px solid rgba(139,92,246,0.3);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    margin-top: 24px;
+  }
+  .schedule-day-header:first-of-type { margin-top: 0; }
+  .schedule-day-badge {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #8b5cf6;
+    background: rgba(139,92,246,0.15);
+    border: 1px solid rgba(139,92,246,0.4);
+    border-radius: 6px;
+    padding: 4px 10px;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+  .schedule-day-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .schedule-item {
+    display: flex;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .schedule-item:last-child { border-bottom: none; }
+  .schedule-time {
+    font-size: 11px;
+    color: var(--gold);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+    width: 56px;
+    padding-top: 2px;
+  }
+  .schedule-body { flex: 1; }
+  .schedule-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .schedule-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+  .schedule-hero {
+    text-align: center;
+    padding: 24px 16px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .schedule-hero-title {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    margin-bottom: 6px;
+  }
+  .schedule-hero-date {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .schedule-hero-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+  }
+  .schedule-footer {
+    text-align: center;
+    padding: 20px 16px;
+    font-size: 12px;
+    color: var(--gold-dim);
+    letter-spacing: 0.1em;
+  }
+
   /* ── NOTIFICATION POPUP ── */
   @keyframes notifSlideIn {
     0% { opacity: 0; transform: translateX(-50%) translateY(-30px); }
@@ -1140,6 +1232,56 @@
     padding: 12px 0 4px;
     line-height: 1.7;
   }
+  .pin-input-wrap {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 12px 0;
+  }
+  .pin-digit {
+    width: 52px;
+    height: 56px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+    outline: none;
+    font-family: 'Noto Sans JP', sans-serif;
+    transition: border 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+    caret-color: var(--gold);
+  }
+  .pin-digit:focus { border-color: var(--gold); }
+  .pin-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    display: block;
+    letter-spacing: 0.05em;
+  }
+  .admin-pin-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .admin-pin-name { font-size: 14px; font-weight: 500; }
+  .admin-pin-code {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    font-family: monospace;
+  }
+  .admin-pin-empty { color: var(--text-muted); font-size: 12px; }
 
   @media (min-width: 600px) {
     .home-cards { max-width: 500px; margin: 0 auto; }
@@ -1182,6 +1324,16 @@
         </div>
       </div>
 
+      <div class="form-group">
+        <label class="form-label">🔢 パスワード（数字3桁）</label>
+        <div class="pin-input-wrap">
+          <input class="pin-digit" id="reg-pin-0" type="number" min="0" max="9" maxlength="1" placeholder="0" oninput="pinInputNext(this,0,'reg')">
+          <input class="pin-digit" id="reg-pin-1" type="number" min="0" max="9" maxlength="1" placeholder="0" oninput="pinInputNext(this,1,'reg')">
+          <input class="pin-digit" id="reg-pin-2" type="number" min="0" max="9" maxlength="1" placeholder="0" oninput="pinInputNext(this,2,'reg')">
+        </div>
+        <span style="font-size:11px;color:var(--text-muted);">※ 後から変更できます。忘れた場合は管理者に確認してください。</span>
+      </div>
+
       <button class="btn-primary" onclick="register()">✦ 合宿に参加する ✦</button>
 
       <div class="login-divider"><span>2回目以降の方はこちら</span></div>
@@ -1191,6 +1343,12 @@
         <select id="login-name-select" class="login-name-select">
           <option value="">名前を選んでください</option>
         </select>
+        <span class="pin-label">🔢 パスワード（数字3桁）</span>
+        <div class="pin-input-wrap">
+          <input class="pin-digit" id="login-pin-0" type="number" min="0" max="9" maxlength="1" placeholder="0" oninput="pinInputNext(this,0,'login')">
+          <input class="pin-digit" id="login-pin-1" type="number" min="0" max="9" maxlength="1" placeholder="0" oninput="pinInputNext(this,1,'login')">
+          <input class="pin-digit" id="login-pin-2" type="number" min="0" max="9" maxlength="1" placeholder="0" oninput="pinInputNext(this,2,'login')">
+        </div>
         <button class="btn-login" onclick="loginByName()">ログインして続きを見る →</button>
         <div id="login-empty-msg" class="login-empty" style="display:none;">
           まだ登録者がいません。<br>上から新規登録してください。
@@ -1213,6 +1371,14 @@
       <span class="hero-user mg-welcome" id="hero-username">ようこそ、〇〇さん</span>
     </div>
     <div class="home-cards">
+      <div class="home-card card-schedule" onclick="goTo('schedule')">
+        <div class="card-emoji">📅</div>
+        <div class="card-body">
+          <div class="card-title">モンスター合宿スケジュール</div>
+          <div class="card-desc">3日間のプログラム・タイムスケジュールを確認する</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
       <div class="home-card card-monster" onclick="goTo('monster')">
         <div class="card-emoji">🐲</div>
         <div class="card-body">
@@ -1441,6 +1607,133 @@
     </div>
   </div>
 
+  <!-- ▶ SCHEDULE -->
+  <div id="screen-schedule" class="screen" style="display:none;">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('home')">← 戻る</button>
+      <span class="topbar-title">📅 合宿スケジュール</span>
+    </div>
+    <div class="page-content">
+
+      <div class="schedule-hero">
+        <div class="schedule-hero-title">MONSTER CAMP</div>
+        <div class="schedule-hero-date">2026年5月27日（火）〜 29日（木）</div>
+        <div class="schedule-hero-sub">〜 あなたの中のモンスターを、解き放て 〜</div>
+      </div>
+
+      <!-- DAY 1 -->
+      <div class="schedule-day-header">
+        <span class="schedule-day-badge">DAY 1</span>
+        <span class="schedule-day-title">メンタルワークと自己理解</span>
+      </div>
+      <div class="field-item" style="padding:8px 16px;">
+        <div class="schedule-item">
+          <div class="schedule-time">15:00</div>
+          <div class="schedule-body">
+            <div class="schedule-title">🏠 チェックイン</div>
+            <div class="schedule-desc">各自のタイミングで集合し、準備ができ次第、軽い自己紹介をしながらワークに入ります。</div>
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">15:00<br>– 18:00</div>
+          <div class="schedule-body">
+            <div class="schedule-title">🔥 メインワーク</div>
+            <div class="schedule-desc">「モンスター」の発揮を止めている原因を特定・解消。Gifted Code（ギフテッドコード）で紐解いていく時間。</div>
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">18:00<br>– 20:00</div>
+          <div class="schedule-body">
+            <div class="schedule-title">🍽 夕食・入浴</div>
+            <div class="schedule-desc">ゆったりと体を休め、エネルギーをチャージします。</div>
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">20:00<br>– 22:00</div>
+          <div class="schedule-body">
+            <div class="schedule-title">🥂 夜のレクリエーション</div>
+            <div class="schedule-desc">お酒や食事を楽しみながら、ざっくばらんな交流。リラックスした雰囲気の中で午後のワークをほどいていきます。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DAY 2 -->
+      <div class="schedule-day-header">
+        <span class="schedule-day-badge">DAY 2</span>
+        <span class="schedule-day-title">ボディワークとモンスターの解放</span>
+      </div>
+      <div class="field-item" style="padding:8px 16px;">
+        <div class="schedule-item">
+          <div class="schedule-time">08:00</div>
+          <div class="schedule-body">
+            <div class="schedule-title">🌅 朝食</div>
+            <div class="schedule-desc">朝の時間をゆっくり過ごします。</div>
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">09:00<br>– 12:00</div>
+          <div class="schedule-body">
+            <div class="schedule-title">💪 ボディワーク</div>
+            <div class="schedule-desc">体・心・感情をひとつにつなげるアプローチ。1日目に意識で外したブレーキを、体を通じて解放し、自然に表現できる状態へと導きます。</div>
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">12:00<br>– 13:00</div>
+          <div class="schedule-body">
+            <div class="schedule-title">🥗 昼食</div>
+            <div class="schedule-desc">午後のフリータイムに向けてエネルギーを補給。</div>
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">13:00<br>– 18:00</div>
+          <div class="schedule-body">
+            <div class="schedule-title">🗺 モンスターの冒険（フリータイム）</div>
+            <div class="schedule-desc">自由にモンスターを発揮する時間。ミッションに取り組んだり、目的に合わせて過ごせます。運営メンバーへの相談も可能です。</div>
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">🌙 夜</div>
+          <div class="schedule-body">
+            <div class="schedule-title">モンスター・フリータイム</div>
+            <div class="schedule-desc">参加者同士や自分自身のモンスターと対話しながら、自由に過ごす時間。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DAY 3 -->
+      <div class="schedule-day-header">
+        <span class="schedule-day-badge">DAY 3</span>
+        <span class="schedule-day-title">定着ワークとチェックアウト</span>
+      </div>
+      <div class="field-item" style="padding:8px 16px;">
+        <div class="schedule-item">
+          <div class="schedule-time">07:00</div>
+          <div class="schedule-body">
+            <div class="schedule-title">☀️ 朝食</div>
+            <div class="schedule-desc">最終日の朝。ゆっくりと食事をとりながら、これまでのワークを静かに振り返ります。</div>
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">08:00<br>– 11:00</div>
+          <div class="schedule-body">
+            <div class="schedule-title">🌱 浸透・定着のワーク</div>
+            <div class="schedule-desc">1日目・2日目の内容をしっかり味わい、定着させていく時間。</div>
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">11:00</div>
+          <div class="schedule-body">
+            <div class="schedule-title">🎓 チェックアウト・解散</div>
+            <div class="schedule-desc">3日間の旅の終わり。それぞれの場所へ、解き放たれた自分とともに。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="schedule-footer">✦ あなたのモンスターが、世界を変える ✦</div>
+
+    </div>
+  </div>
+
   <div id="screen-survey" class="screen" style="display:none;">
     <div class="topbar">
       <button class="back-btn" onclick="goTo('home')">← 戻る</button>
@@ -1480,6 +1773,11 @@
         <div id="admin-mission-list"></div>
       </div>
       <div id="tab-reset" class="tab-panel">
+        <div class="field-item" style="margin-bottom:16px;">
+          <div style="font-size:15px; font-weight:700; margin-bottom:8px; color:var(--gold);">🔢 パスワード一覧</div>
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px; line-height:1.7;">参加者がパスワードを忘れた場合はここで確認できます。</p>
+          <div id="admin-pin-list"></div>
+        </div>
         <div class="field-item" style="margin-bottom:16px;">
           <div style="font-size:15px; font-weight:700; margin-bottom:8px; color:var(--text-primary);">🗑 特定のユーザーを削除</div>
           <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px; line-height:1.7;">重複して登録されてしまったユーザーを選んで削除できます。</p>
@@ -1641,36 +1939,68 @@ function selectRole(role) {
   document.querySelector(`[data-role="${role}"]`).classList.add('selected');
 }
 
+function getPinValue(prefix) {
+  const d0 = (document.getElementById(prefix+'-pin-0')?.value || '').slice(-1);
+  const d1 = (document.getElementById(prefix+'-pin-1')?.value || '').slice(-1);
+  const d2 = (document.getElementById(prefix+'-pin-2')?.value || '').slice(-1);
+  return d0 + d1 + d2;
+}
+
+function clearPinInputs(prefix) {
+  [0,1,2].forEach(i => {
+    const el = document.getElementById(prefix+'-pin-'+i);
+    if (el) el.value = '';
+  });
+}
+
+function pinInputNext(el, idx, prefix) {
+  // 1文字以上入力されたら次のフィールドへ
+  if (el.value.length > 1) el.value = el.value.slice(-1);
+  if (el.value.length === 1 && idx < 2) {
+    const next = document.getElementById(prefix+'-pin-'+(idx+1));
+    if (next) next.focus();
+  }
+}
+
 async function register() {
   const name = document.getElementById('reg-name').value.trim();
   if (!name) { showToast('名前を入力してください'); return; }
   if (!selectedRole) { showToast('権限を選んでください'); return; }
 
+  const pin = getPinValue('reg');
+  if (pin.length !== 3 || !/^[0-9]{3}$/.test(pin)) {
+    showToast('パスワードは数字3桁で入力してください');
+    return;
+  }
+
   showLoading('登録中…');
   try {
-    // 同じ名前が既に存在するか確認
     const usersSnap = await dbGet('users');
     if (usersSnap) {
       const existing = Object.entries(usersSnap).find(([, u]) => u.name === name);
       if (existing) {
         const [key, user] = existing;
-        await dbUpdate('users/' + key, { role: selectedRole, updatedAt: new Date().toISOString() });
+        // 既存ユーザーはPINで認証
+        if (user.pin && user.pin !== pin) {
+          hideLoading();
+          showToast('パスワードが違います');
+          return;
+        }
+        await dbUpdate('users/' + key, { role: selectedRole, pin, updatedAt: new Date().toISOString() });
         currentUserKey = key;
         localStorage.setItem('mgCurrentUser', key);
         hideLoading();
-        showToast(name + 'さんのデータで再ログインしました');
+        showToast(name + 'さん、おかえり！🔥');
         await initHome();
         return;
       }
     }
-
     // 新規登録
     const key = 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
     const userData = {
-      key, name, role: selectedRole,
+      key, name, role: selectedRole, pin,
       createdAt: new Date().toISOString(),
-      monster: {},
-      theme: '',
+      monster: {}, theme: '',
       missions: [], missionMemo: '',
       image: ''
     };
@@ -1724,13 +2054,29 @@ async function loginByName() {
   const key = sel ? sel.value : '';
   if (!key) { showToast('名前を選んでください'); return; }
 
+  const pin = getPinValue('login');
+  if (pin.length !== 3 || !/^[0-9]{3}$/.test(pin)) {
+    showToast('パスワードを数字3桁で入力してください');
+    return;
+  }
+
   showLoading('ログイン中…');
   try {
     const userData = await dbGet('users/' + key);
     if (!userData) { hideLoading(); showToast('ユーザーが見つかりません'); return; }
+
+    // PIN認証
+    if (userData.pin && userData.pin !== pin) {
+      hideLoading();
+      showToast('パスワードが違います 🔐');
+      clearPinInputs('login');
+      return;
+    }
+
     currentUserKey = key;
     localStorage.setItem('mgCurrentUser', key);
     hideLoading();
+    clearPinInputs('login');
     showToast(userData.name + 'さん、おかえり！🔥');
     await initHome();
   } catch(e) {
@@ -1788,6 +2134,7 @@ async function goTo(page) {
       if (badge) badge.style.display = 'none';
       break;
     case 'group-room': showScreen('group-room'); break;
+    case 'schedule': showScreen('schedule'); break;
   }
 }
 
@@ -2251,6 +2598,27 @@ async function saveMission(userKey) {
 }
 
 function renderDeleteUserList() {
+  // PINリストを描画
+  const pinList = document.getElementById('admin-pin-list');
+  if (pinList) {
+    const users = Object.values(allUsers);
+    if (!users.length) {
+      pinList.innerHTML = '<p style="font-size:13px;color:var(--text-muted);">登録ユーザーがいません</p>';
+    } else {
+      pinList.innerHTML = users.map(u => `
+        <div class="admin-pin-row">
+          <div>
+            <div class="admin-pin-name">${u.name}</div>
+            <div style="font-size:11px;color:var(--text-muted);">${u.role === 'admin' ? '👑 管理者' : '⚔️ 参加者'}</div>
+          </div>
+          ${u.pin
+            ? `<div class="admin-pin-code">${u.pin}</div>`
+            : `<div class="admin-pin-empty">未設定</div>`}
+        </div>
+      `).join('');
+    }
+  }
+
   const list = document.getElementById('delete-user-list');
   if (!list) return;
   list.innerHTML = '';
@@ -2806,6 +3174,7 @@ function formatChatTime(ts) {
 }
 
 window.selectRole = selectRole;
+window.pinInputNext = pinInputNext;
 window.register = register;
 window.loginByName = loginByName;
 window.logout = logout;
