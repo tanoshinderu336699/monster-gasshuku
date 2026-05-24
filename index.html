@@ -1254,6 +1254,7 @@
     -webkit-appearance: none;
     appearance: none;
     caret-color: var(--gold);
+    font-size: 16px;
   }
   .pin-digit:focus { border-color: var(--gold); }
   .pin-label {
@@ -1327,9 +1328,9 @@
       <div class="form-group">
         <label class="form-label">🔢 パスワード（数字3桁）</label>
         <div class="pin-input-wrap">
-          <input class="pin-digit" id="reg-pin-0" type="number" min="0" max="9" maxlength="1" placeholder="0" oninput="pinInputNext(this,0,'reg')">
-          <input class="pin-digit" id="reg-pin-1" type="number" min="0" max="9" maxlength="1" placeholder="0" oninput="pinInputNext(this,1,'reg')">
-          <input class="pin-digit" id="reg-pin-2" type="number" min="0" max="9" maxlength="1" placeholder="0" oninput="pinInputNext(this,2,'reg')">
+          <input class="pin-digit" id="reg-pin-0" type="tel" inputmode="numeric" pattern="[0-9]" maxlength="1" placeholder="•" oninput="pinInputNext(this,0,'reg')">
+          <input class="pin-digit" id="reg-pin-1" type="tel" inputmode="numeric" pattern="[0-9]" maxlength="1" placeholder="•" oninput="pinInputNext(this,1,'reg')">
+          <input class="pin-digit" id="reg-pin-2" type="tel" inputmode="numeric" pattern="[0-9]" maxlength="1" placeholder="•" oninput="pinInputNext(this,2,'reg')">
         </div>
         <span style="font-size:11px;color:var(--text-muted);">※ 後から変更できます。忘れた場合は管理者に確認してください。</span>
       </div>
@@ -1345,9 +1346,9 @@
         </select>
         <span class="pin-label">🔢 パスワード（数字3桁）</span>
         <div class="pin-input-wrap">
-          <input class="pin-digit" id="login-pin-0" type="number" min="0" max="9" maxlength="1" placeholder="0" oninput="pinInputNext(this,0,'login')">
-          <input class="pin-digit" id="login-pin-1" type="number" min="0" max="9" maxlength="1" placeholder="0" oninput="pinInputNext(this,1,'login')">
-          <input class="pin-digit" id="login-pin-2" type="number" min="0" max="9" maxlength="1" placeholder="0" oninput="pinInputNext(this,2,'login')">
+          <input class="pin-digit" id="login-pin-0" type="tel" inputmode="numeric" pattern="[0-9]" maxlength="1" placeholder="•" oninput="pinInputNext(this,0,'login')">
+          <input class="pin-digit" id="login-pin-1" type="tel" inputmode="numeric" pattern="[0-9]" maxlength="1" placeholder="•" oninput="pinInputNext(this,1,'login')">
+          <input class="pin-digit" id="login-pin-2" type="tel" inputmode="numeric" pattern="[0-9]" maxlength="1" placeholder="•" oninput="pinInputNext(this,2,'login')">
         </div>
         <button class="btn-login" onclick="loginByName()">ログインして続きを見る →</button>
         <div id="login-empty-msg" class="login-empty" style="display:none;">
@@ -1940,9 +1941,9 @@ function selectRole(role) {
 }
 
 function getPinValue(prefix) {
-  const d0 = (document.getElementById(prefix+'-pin-0')?.value || '').slice(-1);
-  const d1 = (document.getElementById(prefix+'-pin-1')?.value || '').slice(-1);
-  const d2 = (document.getElementById(prefix+'-pin-2')?.value || '').slice(-1);
+  const d0 = String(document.getElementById(prefix+'-pin-0')?.value || '').replace(/[^0-9]/g,'').slice(-1);
+  const d1 = String(document.getElementById(prefix+'-pin-1')?.value || '').replace(/[^0-9]/g,'').slice(-1);
+  const d2 = String(document.getElementById(prefix+'-pin-2')?.value || '').replace(/[^0-9]/g,'').slice(-1);
   return d0 + d1 + d2;
 }
 
@@ -1954,11 +1955,11 @@ function clearPinInputs(prefix) {
 }
 
 function pinInputNext(el, idx, prefix) {
-  // 1文字以上入力されたら次のフィールドへ
-  if (el.value.length > 1) el.value = el.value.slice(-1);
+  // 数字以外を除去して1文字に制限
+  el.value = el.value.replace(/[^0-9]/g, '').slice(-1);
   if (el.value.length === 1 && idx < 2) {
     const next = document.getElementById(prefix+'-pin-'+(idx+1));
-    if (next) next.focus();
+    if (next) { next.focus(); next.select(); }
   }
 }
 
@@ -2000,8 +2001,8 @@ async function register() {
     const userData = {
       key, name, role: selectedRole, pin,
       createdAt: new Date().toISOString(),
-      monster: {}, theme: '',
-      missions: [], missionMemo: '',
+      monster: { _init: true }, theme: '',
+      missionMemo: '',
       image: ''
     };
     await dbSet('users/' + key, userData);
@@ -2011,8 +2012,8 @@ async function register() {
     await initHome();
   } catch(e) {
     hideLoading();
-    showToast('登録に失敗しました。通信を確認してください。');
-    console.error(e);
+    console.error('Register error:', e);
+    showToast('登録に失敗しました: ' + (e.message || e));
   }
 }
 
