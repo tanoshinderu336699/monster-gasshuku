@@ -320,6 +320,44 @@
   .home-card.card-survey::before { background: var(--orange); }
   .home-card.card-admin::before { background: var(--text-secondary); }
   .home-card.card-chat::before { background: #1db58a; }
+  .home-card.card-vision::before { background: #f97316; }
+  .home-card.card-all-vision::before { background: #e8c96a; }
+
+  /* ビジョン一覧カード */
+  .vision-user-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 12px;
+    transition: border 0.2s;
+  }
+  .vision-user-card:hover { border-color: var(--border-em); }
+  .vision-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .vision-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--bg-card2); border: 1px solid var(--gold-dim);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0; overflow: hidden;
+  }
+  .vision-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .vision-user-name { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+  .vision-monster-name { font-size: 12px; color: var(--gold); margin-top: 2px; }
+  .vision-text {
+    font-size: 14px; color: var(--text-secondary);
+    line-height: 1.8; white-space: pre-wrap; word-break: break-word;
+  }
+  .vision-empty-text {
+    font-size: 13px; color: var(--text-muted);
+    font-style: italic;
+  }
 
   /* ── SCHEDULE ── */
   .home-card.card-schedule::before { background: #8b5cf6; }
@@ -1396,11 +1434,27 @@
         </div>
         <div class="card-arrow">›</div>
       </div>
+      <div class="home-card card-vision" onclick="goTo('vision')">
+        <div class="card-emoji">✨</div>
+        <div class="card-body">
+          <div class="card-title">私のモンスターを解放した後のビジョン</div>
+          <div class="card-desc">3日目のワークで見えてきた<br>自分のビジョンを書き込む</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
       <div class="home-card card-all" onclick="goTo('all-monsters')">
         <div class="card-emoji">📖</div>
         <div class="card-body">
           <div class="card-title">みんなのモンスター</div>
           <div class="card-desc">参加者全員のモンスター情報を閲覧<br>お互いの力を知り合宿を深める</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
+      <div class="home-card card-all-vision" onclick="goTo('all-visions')">
+        <div class="card-emoji">🌟</div>
+        <div class="card-body">
+          <div class="card-title">みんなのビジョン</div>
+          <div class="card-desc">全員のモンスター解放後のビジョンを閲覧<br>リアルタイムで更新される</div>
         </div>
         <div class="card-arrow">›</div>
       </div>
@@ -1490,6 +1544,25 @@
     </div>
   </div>
 
+  <!-- ▶ MY VISION -->
+  <div id="screen-vision" class="screen" style="display:none;">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('home')">← 戻る</button>
+      <span class="topbar-title">✨ 私のビジョン</span>
+      <span class="topbar-user" id="save-indicator-vision">　</span>
+    </div>
+    <div class="page-content">
+      <div class="theme-desc-box" style="border-left-color:var(--orange);">
+        3日目のワークで扱う内容です。<br>
+        お互いのモンスターの力を使って、解放された後のビジョンの次元を引き上げ、祝福し合うワークを行います。<br>
+        その際に見えてきた自分のビジョンをここに書き込んでください。<br>
+        何かが見えてきた瞬間に書き留めておくことで、後から振り返った時の宝になります。
+      </div>
+      <textarea id="vision-textarea" rows="16" placeholder="モンスターが解放された後、どんな自分になっている？&#10;どんな世界を生きている？&#10;何を感じている？&#10;誰と、どんなことをしている？&#10;&#10;直感でそのまま書いてみて。"></textarea>
+      <span class="autosave-note" style="display:block; margin-top:8px;">✦ 入力した内容は自動保存されます。保存ボタンは不要です。</span>
+    </div>
+  </div>
+
   <!-- ▶ ALL MONSTERS -->
   <div id="screen-all-monsters" class="screen" style="display:none;">
     <div class="topbar">
@@ -1502,6 +1575,19 @@
         <input type="text" class="search-input" placeholder="モンスター名で検索…" id="search-mname" oninput="filterMonsters()">
       </div>
       <div id="all-monsters-list"></div>
+    </div>
+  </div>
+
+  <!-- ▶ ALL VISIONS -->
+  <div id="screen-all-visions" class="screen" style="display:none;">
+    <div class="topbar">
+      <button class="back-btn" onclick="goTo('home')">← 戻る</button>
+      <span class="topbar-title">🌟 みんなのビジョン</span>
+    </div>
+    <div class="page-content">
+      <div id="all-visions-list">
+        <div class="chat-empty">読み込み中…</div>
+      </div>
     </div>
   </div>
 
@@ -2193,6 +2279,8 @@ async function goTo(page) {
       break;
     case 'group-room': showScreen('group-room'); break;
     case 'schedule': showScreen('schedule'); break;
+    case 'vision': showScreen('vision'); await initVisionPage(); break;
+    case 'all-visions': showScreen('all-visions'); await initAllVisions(); break;
   }
 }
 
@@ -2242,6 +2330,8 @@ function triggerSave(page, data) {
         await update(ref(db), updates);
       } else if (page === 'theme') {
         await dbUpdate('users/' + currentUserKey, { theme: data, updatedAt: new Date().toISOString() });
+    } else if (page === 'vision') {
+        await dbUpdate('users/' + currentUserKey, { vision: data, updatedAt: new Date().toISOString() });
       } else if (page === 'mission-memo') {
         await dbUpdate('users/' + currentUserKey + '/mission', { memo: data });
         await dbUpdate('users/' + currentUserKey, { updatedAt: new Date().toISOString() });
@@ -2330,6 +2420,71 @@ async function initThemePage() {
   const ta = document.getElementById('theme-textarea');
   ta.value = user.theme || '';
   ta.oninput = e => triggerSave('theme', e.target.value);
+}
+
+// ══════════════════════════════════════
+// VISION PAGE
+// ══════════════════════════════════════
+async function initVisionPage() {
+  showLoading('読み込み中…');
+  const user = await dbGet('users/' + currentUserKey);
+  hideLoading();
+  const ta = document.getElementById('vision-textarea');
+  ta.value = user.vision || '';
+  ta.oninput = e => triggerSave('vision', e.target.value);
+}
+
+async function initAllVisions() {
+  showLoading('ビジョンを読み込み中…');
+  const users = await dbGet('users') || {};
+  hideLoading();
+  renderAllVisions(users);
+
+  // リアルタイム更新
+  onValue(ref(db, 'users'), snap => {
+    if (!snap.exists()) return;
+    renderAllVisions(snap.val());
+  });
+}
+
+function safeText(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .split(String.fromCharCode(10)).join('<br>')
+    .replace(/\x3C/g, '&lt;')
+    .replace(/\x3E/g, '&gt;');
+}
+
+function renderAllVisions(users) {
+  const container = document.getElementById('all-visions-list');
+  if (!container) return;
+  const userList = Object.values(users);
+  if (!userList.length) {
+    container.innerHTML = '<div class="chat-empty">まだ登録者がいません</div>';
+    return;
+  }
+  container.innerHTML = userList.map(function(u) {
+    const avatarHtml = u.image
+      ? '<img src="' + u.image + '" alt="' + safeText(u.name) + '">'
+      : '🐉';
+    const visionHtml = u.vision
+      ? '<div class="vision-text">' + safeText(u.vision) + '</div>'
+      : '<div class="vision-empty-text">まだビジョンは書かれていません</div>';
+    const mname = (u.monster && u.monster.mname) ? safeText(u.monster.mname) : 'モンスター名未設定';
+    return '<div class="vision-user-card">'
+      + '<div class="vision-card-header">'
+        + '<div class="vision-avatar">' + avatarHtml + '</div>'
+        + '<div>'
+          + '<div class="vision-user-name">' + safeText(u.name) + '</div>'
+          + '<div class="vision-monster-name">' + mname + '</div>'
+        + '</div>'
+      + '</div>'
+      + visionHtml
+    + '</div>';
+  }).join('');
 }
 
 // ══════════════════════════════════════
@@ -2430,7 +2585,7 @@ async function initMissionPage() {
           <span class="mission-item-label">⚡ ミッション ${i + 1}</span>
         </div>
         <div class="mission-title-val">${m.title || ''}</div>
-        <div class="mission-body-val">${(m.body || '').replace(/\n/g, '<br>')}</div>
+        <div class="mission-body-val">${(m.body || '').split(String.fromCharCode(10)).join('<br>')}</div>
         ${m.supplement ? `<div class="mission-sup-val">📌 補足：${m.supplement}</div>` : ''}
       </div>
     `).join('');
@@ -3223,7 +3378,7 @@ async function sendDmMessage() {
 
 
 function escapeHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  return str.replace(/&/g,'&amp;').replace(/\x3C/g,'&lt;').replace(/\x3E/g,'&gt;').split(String.fromCharCode(10)).join('<br>');
 }
 
 function formatChatTime(ts) {
